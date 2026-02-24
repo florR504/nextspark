@@ -14,6 +14,7 @@ import {
   Key,
   type LucideIcon
 } from 'lucide-react'
+import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
 // Icon mapping for settings pages
 const SETTINGS_ICONS: Record<string, LucideIcon> = {
@@ -89,4 +90,4 @@ function SettingsPage() {
   )
 }
 
-export default SettingsPage
+export default getTemplateOrDefaultClient('app/dashboard/settings/page.tsx', SettingsPage)

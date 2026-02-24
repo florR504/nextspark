@@ -12,8 +12,9 @@ import { clientEntityRegistry, ensureClientInitialized, type ClientEntityConfig 
 import { EntityFormWrapper } from '@nextsparkjs/core/components/entities/wrappers/EntityFormWrapper'
 import { BuilderEditorView } from '@nextsparkjs/core/components/dashboard/block-editor/builder-editor-view'
 import { Alert, AlertDescription } from '@nextsparkjs/core/components/ui/alert'
+import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
-export default function PatternsCreatePage() {
+function PatternsCreatePage() {
   const router = useRouter()
   const [entityConfig, setEntityConfig] = useState<ClientEntityConfig | null>(null)
   const [loading, setLoading] = useState(true)
@@ -84,3 +85,5 @@ export default function PatternsCreatePage() {
     />
   )
 }
+
+export default getTemplateOrDefaultClient('app/dashboard/(main)/patterns/create/page.tsx', PatternsCreatePage)

@@ -28,6 +28,7 @@ import type { Permission } from '@nextsparkjs/core/lib/permissions/types'
 import type { QuickAction, DropdownAction } from '@nextsparkjs/core/components/entities/entity-table.types'
 import { sel } from '@nextsparkjs/core/lib/test'
 import { toast } from 'sonner'
+import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
 interface PatternItem {
   id: string
@@ -37,7 +38,7 @@ interface PatternItem {
   [key: string]: unknown
 }
 
-export default function PatternsListPage() {
+function PatternsListPage() {
   const entityType = 'patterns'
   const router = useRouter()
 
@@ -442,3 +443,5 @@ export default function PatternsListPage() {
     </div>
   )
 }
+
+export default getTemplateOrDefaultClient('app/dashboard/(main)/patterns/page.tsx', PatternsListPage)

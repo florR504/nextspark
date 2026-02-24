@@ -5,6 +5,7 @@
  * This page is displayed when a user attempts to access a resource they don't have permission for.
  */
 import { NoPermission } from '@nextsparkjs/core/components/permissions/NoPermission'
+import { getTemplateOrDefault } from '@nextsparkjs/core/lib/template-resolver'
 
 interface PermissionDeniedPageProps {
   searchParams: Promise<{
@@ -13,7 +14,7 @@ interface PermissionDeniedPageProps {
   }>
 }
 
-export default async function PermissionDeniedPage({
+async function PermissionDeniedPage({
   searchParams
 }: PermissionDeniedPageProps) {
   const { entity, action } = await searchParams
@@ -27,3 +28,5 @@ export default async function PermissionDeniedPage({
     />
   )
 }
+
+export default getTemplateOrDefault('app/dashboard/permission-denied/page.tsx', PermissionDeniedPage)

@@ -5,6 +5,7 @@
  */
 
 import { redirect } from 'next/navigation'
+import { getTemplateOrDefault } from '@nextsparkjs/core/lib/template-resolver'
 
 interface PageProps {
   params: Promise<{
@@ -12,9 +13,11 @@ interface PageProps {
   }>
 }
 
-export default async function PatternDetailPage({ params }: PageProps) {
+async function PatternDetailPage({ params }: PageProps) {
   const resolvedParams = await params
 
   // Patterns are builder-enabled, so redirect to edit view
   redirect(`/dashboard/patterns/${resolvedParams.id}/edit`)
 }
+
+export default getTemplateOrDefault('app/dashboard/(main)/patterns/[id]/page.tsx', PatternDetailPage)

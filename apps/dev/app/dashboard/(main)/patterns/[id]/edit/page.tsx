@@ -14,8 +14,9 @@ import { EntityFormWrapper } from '@nextsparkjs/core/components/entities/wrapper
 import { BuilderEditorView } from '@nextsparkjs/core/components/dashboard/block-editor/builder-editor-view'
 import { Alert, AlertDescription } from '@nextsparkjs/core/components/ui/alert'
 import { getEntityData } from '@nextsparkjs/core/lib/api/entities'
+import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
-export default function PatternEditPage() {
+function PatternEditPage() {
   const params = useParams()
   const router = useRouter()
   const [entityConfig, setEntityConfig] = useState<ClientEntityConfig | null>(null)
@@ -112,3 +113,5 @@ export default function PatternEditPage() {
     />
   )
 }
+
+export default getTemplateOrDefaultClient('app/dashboard/(main)/patterns/[id]/edit/page.tsx', PatternEditPage)

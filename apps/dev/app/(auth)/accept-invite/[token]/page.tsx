@@ -9,6 +9,7 @@ import { Loader2, CheckCircle, XCircle, Users, LogIn, UserPlus } from 'lucide-re
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { sel } from '@nextsparkjs/core/selectors'
+import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
 type InvitationStatus = 'loading' | 'valid' | 'accepting' | 'accepted' | 'error' | 'expired' | 'not_found' | 'email_mismatch' | 'already_member' | 'requires_auth'
 
@@ -19,7 +20,7 @@ interface InvitationInfo {
   email: string
 }
 
-export default function AcceptInvitePage() {
+function AcceptInvitePage() {
   const params = useParams()
   const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
@@ -333,3 +334,5 @@ export default function AcceptInvitePage() {
     </div>
   )
 }
+
+export default getTemplateOrDefaultClient('app/(auth)/accept-invite/[token]/page.tsx', AcceptInvitePage)

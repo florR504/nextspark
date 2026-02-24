@@ -1,5 +1,8 @@
 import { SkeletonInvoicesPage } from '@nextsparkjs/core/components/ui/skeleton-settings'
+import { getTemplateOrDefault } from '@nextsparkjs/core/lib/template-resolver'
 
-export default function InvoicesLoading() {
+function InvoicesLoading() {
   return <SkeletonInvoicesPage />
 }
+
+export default getTemplateOrDefault('app/dashboard/settings/invoices/loading.tsx', InvoicesLoading)

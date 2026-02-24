@@ -1,6 +1,7 @@
 import { Skeleton } from '@nextsparkjs/core/components/ui/skeleton'
+import { getTemplateOrDefault } from '@nextsparkjs/core/lib/template-resolver'
 
-export default function EntityLoading() {
+function EntityLoading() {
   return (
     <div className="space-y-6 p-6">
       {/* Header skeleton */}
@@ -59,3 +60,5 @@ export default function EntityLoading() {
     </div>
   )
 }
+
+export default getTemplateOrDefault('app/dashboard/(main)/[entity]/loading.tsx', EntityLoading)

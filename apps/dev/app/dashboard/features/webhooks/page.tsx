@@ -4,8 +4,9 @@ import { FeatureGate } from '@nextsparkjs/core/components/billing/FeatureGate'
 import { FeaturePlaceholder } from '@nextsparkjs/core/components/billing/FeaturePlaceholder'
 import { Webhook } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
-export default function WebhooksPage() {
+function WebhooksPage() {
   const t = useTranslations('features')
 
   return (
@@ -33,3 +34,5 @@ export default function WebhooksPage() {
     </div>
   )
 }
+
+export default getTemplateOrDefaultClient('app/dashboard/features/webhooks/page.tsx', WebhooksPage)

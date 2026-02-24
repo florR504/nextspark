@@ -17,6 +17,7 @@ import { Button } from '@nextsparkjs/core/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@nextsparkjs/core/components/ui/alert'
 import { Skeleton } from '@nextsparkjs/core/components/ui/skeleton'
 import { getEntityData } from '@nextsparkjs/core/lib/api/entities'
+import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
 interface PatternData {
   id: string
@@ -24,7 +25,7 @@ interface PatternData {
   title?: string
 }
 
-export default function PatternReportsPage() {
+function PatternReportsPage() {
   const params = useParams()
   const router = useRouter()
   const patternId = params.id as string
@@ -169,3 +170,5 @@ export default function PatternReportsPage() {
     </div>
   )
 }
+
+export default getTemplateOrDefaultClient('app/dashboard/(main)/patterns/[id]/reports/page.tsx', PatternReportsPage)

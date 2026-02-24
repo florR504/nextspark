@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@nextsparkjs/core/comp
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nextsparkjs/core/components/ui/card'
 // Use PermissionService which reads from the build-time generated registry
 import { PermissionService } from '@nextsparkjs/core/lib/services/permission.service'
+import { getTemplateOrDefault } from '@nextsparkjs/core/lib/template-resolver'
 
 /**
  * Team Permissions Page
@@ -11,7 +12,7 @@ import { PermissionService } from '@nextsparkjs/core/lib/services/permission.ser
  * Displays a visual permissions matrix showing what each team role can do.
  * Organized by categories with tabs for easy navigation.
  */
-export default function TeamPermissionsPage() {
+function TeamPermissionsPage() {
   const t = useTranslations('permissions')
 
   // Get all unique categories from registry
@@ -90,3 +91,5 @@ function RoleCard({ role }: { role: 'owner' | 'admin' | 'member' | 'viewer' }) {
     </div>
   )
 }
+
+export default getTemplateOrDefault('app/dashboard/settings/teams/permissions/page.tsx', TeamPermissionsPage)

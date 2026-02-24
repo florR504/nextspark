@@ -4,8 +4,9 @@ import { FeatureGate } from '@nextsparkjs/core/components/billing/FeatureGate'
 import { FeaturePlaceholder } from '@nextsparkjs/core/components/billing/FeaturePlaceholder'
 import { BarChart3 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
-export default function AdvancedAnalyticsPage() {
+function AdvancedAnalyticsPage() {
   const t = useTranslations('features')
 
   return (
@@ -33,3 +34,5 @@ export default function AdvancedAnalyticsPage() {
     </div>
   )
 }
+
+export default getTemplateOrDefaultClient('app/dashboard/features/analytics/page.tsx', AdvancedAnalyticsPage)

@@ -4,8 +4,9 @@ import { FeatureGate } from '@nextsparkjs/core/components/billing/FeatureGate'
 import { FeaturePlaceholder } from '@nextsparkjs/core/components/billing/FeaturePlaceholder'
 import { Zap } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
-export default function TaskAutomationPage() {
+function TaskAutomationPage() {
   const t = useTranslations('features')
 
   return (
@@ -33,3 +34,5 @@ export default function TaskAutomationPage() {
     </div>
   )
 }
+
+export default getTemplateOrDefaultClient('app/dashboard/features/automation/page.tsx', TaskAutomationPage)
