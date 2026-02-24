@@ -99,7 +99,7 @@ export function Sidebar({ className, entities }: SidebarProps) {
                 </h3>
               )}
               <div>
-                <DynamicNavigation entities={entities} />
+                <DynamicNavigation entities={entities} isCollapsed={isCollapsed} />
               </div>
             </section>
           </div>

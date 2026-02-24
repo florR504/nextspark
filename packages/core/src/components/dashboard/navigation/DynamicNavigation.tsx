@@ -37,6 +37,7 @@ interface CustomSidebarSection {
 interface DynamicNavigationProps {
   className?: string
   isMobile?: boolean
+  isCollapsed?: boolean
   onItemClick?: () => void
   entities: SerializableEntityConfig[]
 }
@@ -79,12 +80,14 @@ function SectionWithPermission({
   section,
   pathname,
   isMobile,
+  isCollapsed = false,
   onItemClick,
   t
 }: {
   section: CustomSidebarSection
   pathname: string
   isMobile: boolean
+  isCollapsed?: boolean
   onItemClick?: () => void
   t: (key: string) => string
 }) {
@@ -109,13 +112,18 @@ function SectionWithPermission({
 
   return (
     <div className="mb-4" data-cy={sel('dashboard.navigation.section', { id: section.id })}>
-      <div
-        className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2"
-        data-cy={sel('dashboard.navigation.sectionLabel', { id: section.id })}
-      >
-        <SectionIcon className="h-3 w-3" />
-        <span>{sectionLabel}</span>
-      </div>
+      {!isCollapsed && (
+        <div
+          className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2"
+          data-cy={sel('dashboard.navigation.sectionLabel', { id: section.id })}
+        >
+          <SectionIcon className="h-3 w-3" />
+          <span>{sectionLabel}</span>
+        </div>
+      )}
+      {isCollapsed && (
+        <div className="my-2 mx-3 border-t border-border" aria-hidden="true" />
+      )}
       <div className="space-y-1">
         {section.items.map((item) => {
           const ItemIcon = (Icons[item.icon as keyof typeof Icons] || Icons.Circle) as LucideIcon
@@ -131,17 +139,19 @@ function SectionWithPermission({
               href={item.href}
               onClick={onItemClick}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isCollapsed ? "justify-center" : "gap-3",
                 isActive
                   ? "bg-secondary text-foreground"
                   : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
                 isMobile && "w-full"
               )}
               aria-current={isActive ? 'page' : undefined}
+              title={isCollapsed ? itemLabel : undefined}
               data-cy={sel('dashboard.navigation.sectionItem', { sectionId: section.id, itemId: item.id })}
             >
               <ItemIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="truncate">{itemLabel}</span>
+              {!isCollapsed && <span className="truncate">{itemLabel}</span>}
             </Link>
           )
         })}
@@ -153,6 +163,7 @@ function SectionWithPermission({
 export function DynamicNavigation({
   className,
   isMobile = false,
+  isCollapsed = false,
   onItemClick,
   entities
 }: DynamicNavigationProps) {
@@ -162,26 +173,11 @@ export function DynamicNavigation({
   // Check if theme has custom sidebar sections
   const hasCustomSections = customSidebarSections.length > 0
 
-  // DEBUG: Log incoming entities
-  console.log('[DynamicNavigation] entities count:', entities?.length)
-  if (entities?.length > 0) {
-    console.log('[DynamicNavigation] First entity:', {
-      slug: entities[0].slug,
-      enabled: entities[0].enabled,
-      hasUi: !!(entities[0] as any).ui,
-      ui: (entities[0] as any).ui,
-      showInMenu: (entities[0] as any).ui?.dashboard?.showInMenu
-    })
-  }
-
   // Fallback: Use entities if no custom sections defined
   const enabledEntities = useMemo(() =>
     entities.filter(entity => entity?.enabled && entity?.ui?.dashboard?.showInMenu),
     [entities]
   )
-
-  // DEBUG: Log filtered entities
-  console.log('[DynamicNavigation] enabledEntities count:', enabledEntities?.length)
 
   const entityItems: NavigationItem[] = useMemo(() =>
     enabledEntities.map(entity => {
@@ -210,17 +206,19 @@ export function DynamicNavigation({
           href="/dashboard"
           onClick={onItemClick}
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors mb-4",
+            "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors mb-4",
+            isCollapsed ? "justify-center" : "gap-3",
             pathname === '/dashboard'
               ? "bg-secondary text-foreground"
               : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
             isMobile && "w-full"
           )}
           aria-current={pathname === '/dashboard' ? 'page' : undefined}
+          title={isCollapsed ? t('navigation.dashboard') : undefined}
           data-cy={sel('dashboard.navigation.dashboardLink')}
         >
           <Home className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <span className="truncate">{t('navigation.dashboard')}</span>
+          {!isCollapsed && <span className="truncate">{t('navigation.dashboard')}</span>}
         </Link>
 
         {/* Custom sections with permission checking */}
@@ -230,6 +228,7 @@ export function DynamicNavigation({
             section={section}
             pathname={pathname}
             isMobile={isMobile}
+            isCollapsed={isCollapsed}
             onItemClick={onItemClick}
             t={t}
           />
@@ -250,6 +249,7 @@ export function DynamicNavigation({
           pathname={pathname}
           t={t}
           isMobile={isMobile}
+          isCollapsed={isCollapsed}
           onItemClick={onItemClick}
         />
       ))}
@@ -262,6 +262,7 @@ interface NavigationLinkProps {
   pathname: string
   t: (key: string, options?: { defaultValue?: string }) => string
   isMobile?: boolean
+  isCollapsed?: boolean
   onItemClick?: () => void
 }
 
@@ -270,6 +271,7 @@ function NavigationLink({
   pathname,
   t,
   isMobile = false,
+  isCollapsed = false,
   onItemClick
 }: NavigationLinkProps) {
   const Icon = item.icon
@@ -292,17 +294,19 @@ function NavigationLink({
       href={item.href}
       onClick={onItemClick}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        isCollapsed ? "justify-center" : "gap-3",
         isActive
           ? "bg-secondary text-foreground"
           : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
         isMobile && "w-full"
       )}
       aria-current={isActive ? 'page' : undefined}
+      title={isCollapsed ? label : undefined}
       data-cy={dataCyId}
     >
       <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-      <span className="truncate">{label}</span>
+      {!isCollapsed && <span className="truncate">{label}</span>}
     </Link>
   )
 }
