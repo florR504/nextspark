@@ -198,37 +198,17 @@ export const PERMISSIONS_CONFIG_OVERRIDES: ThemePermissionsConfig = {
       roles: ['owner', 'admin'],
     },
 
-    // MEDIA MANAGEMENT
-    {
-      action: 'media.read',
-      label: 'View Media',
-      description: 'Can browse and view media files in the library',
-      category: 'Media',
-      roles: ['owner', 'admin', 'editor', 'member', 'viewer'],
-    },
-    {
-      action: 'media.upload',
-      label: 'Upload Media',
-      description: 'Can upload images, videos, and other media files',
-      category: 'Media',
-      roles: ['owner', 'admin', 'editor'],
-    },
-    {
-      action: 'media.update',
-      label: 'Edit Media',
-      description: 'Can edit media metadata, tags, and captions',
-      category: 'Media',
-      roles: ['owner', 'admin', 'editor'],
-    },
-    {
-      action: 'media.delete',
-      label: 'Delete Media',
-      description: 'Can permanently delete media files',
-      category: 'Media',
-      roles: ['owner', 'admin'],
-      dangerous: true,
-    },
   ],
+
+  // ==========================================
+  // CORE PERMISSION OVERRIDES
+  // ==========================================
+  // Extend core media permissions with the 'editor' custom role
+  overrides: {
+    'media.read': { roles: ['owner', 'admin', 'editor', 'member', 'viewer'] },
+    'media.upload': { roles: ['owner', 'admin', 'editor'] },
+    'media.update': { roles: ['owner', 'admin', 'editor'] },
+  },
 
   // ==========================================
   // UI SECTIONS
@@ -257,12 +237,6 @@ export const PERMISSIONS_CONFIG_OVERRIDES: ThemePermissionsConfig = {
       label: 'Blog',
       description: 'Blog publishing and management features',
       categories: ['Blog'],
-    },
-    {
-      id: 'media',
-      label: 'Media',
-      description: 'Media library management',
-      categories: ['Media'],
     },
   ],
 }

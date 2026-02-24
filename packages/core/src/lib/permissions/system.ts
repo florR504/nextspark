@@ -79,6 +79,37 @@ export const CORE_PERMISSIONS_CONFIG: CorePermissionsConfig = {
       category: 'Settings',
       roles: ['owner', 'admin'],
     },
+
+    // Media Library
+    {
+      id: 'media.read',
+      label: 'View Media',
+      description: 'Can browse and view media files in the library',
+      category: 'Media',
+      roles: ['owner', 'admin', 'member', 'viewer'],
+    },
+    {
+      id: 'media.upload',
+      label: 'Upload Media',
+      description: 'Can upload images, videos, and other media files',
+      category: 'Media',
+      roles: ['owner', 'admin', 'member'],
+    },
+    {
+      id: 'media.update',
+      label: 'Edit Media',
+      description: 'Can edit media metadata, tags, and captions',
+      category: 'Media',
+      roles: ['owner', 'admin'],
+    },
+    {
+      id: 'media.delete',
+      label: 'Delete Media',
+      description: 'Can permanently delete media files',
+      category: 'Media',
+      roles: ['owner', 'admin'],
+      dangerous: true,
+    },
   ],
 
   /**
@@ -93,6 +124,9 @@ export const CORE_PERMISSIONS_CONFIG: CorePermissionsConfig = {
       'teams.settings',
       'settings.api_keys',
       'settings.integrations',
+      'media.read',
+      'media.upload',
+      'media.update',
     ],
     member: [],  // Permissions come from entity configs
     viewer: [],  // Only read/list of entities
@@ -111,6 +145,12 @@ export const CORE_PERMISSIONS_CONFIG: CorePermissionsConfig = {
       id: 'settings',
       label: 'Settings',
       categories: ['Settings'],
+    },
+    {
+      id: 'media',
+      label: 'Media',
+      description: 'Media library management',
+      categories: ['Media'],
     },
     {
       id: 'entities',
