@@ -6,22 +6,39 @@ import { Input } from './input'
 import { Badge } from './badge'
 import { cn } from '../../lib/utils'
 
+export interface PasswordRequirementLabels {
+  minChars: string
+  uppercase: string
+  lowercase: string
+  number: string
+}
+
+const DEFAULT_REQUIREMENT_LABELS: PasswordRequirementLabels = {
+  minChars: '8+ characters',
+  uppercase: 'One uppercase',
+  lowercase: 'One lowercase',
+  number: 'One number',
+}
+
 export interface PasswordInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   showRequirements?: boolean
   showToggle?: boolean
   password?: string
+  requirementLabels?: PasswordRequirementLabels
 }
 
 const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, showRequirements = false, showToggle = true, password = '', ...props }, ref) => {
+  ({ className, showRequirements = false, showToggle = true, password = '', requirementLabels, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false)
-    
+
+    const labels = requirementLabels ?? DEFAULT_REQUIREMENT_LABELS
+
     const passwordRequirements = [
-      { met: password.length >= 8, text: '8+ characters' },
-      { met: /[A-Z]/.test(password), text: 'One uppercase' },
-      { met: /[a-z]/.test(password), text: 'One lowercase' },
-      { met: /[0-9]/.test(password), text: 'One number' },
+      { met: password.length >= 8, text: labels.minChars },
+      { met: /[A-Z]/.test(password), text: labels.uppercase },
+      { met: /[a-z]/.test(password), text: labels.lowercase },
+      { met: /[0-9]/.test(password), text: labels.number },
     ]
 
     return (

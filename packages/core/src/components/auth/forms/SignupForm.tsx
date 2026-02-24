@@ -94,23 +94,23 @@ export function SignupForm() {
         if (!response.ok) {
           // Handle specific error codes
           if (result.code === 'USER_ALREADY_EXISTS') {
-            setError('An account with this email already exists. Please sign in instead.')
+            setError(t('signup.errors.userAlreadyExists'))
           } else if (result.code === 'EMAIL_MISMATCH') {
-            setError('This invitation was sent to a different email address.')
+            setError(t('signup.errors.emailMismatch'))
           } else if (result.code === 'INVITATION_EXPIRED') {
-            setError('This invitation has expired. Please request a new one.')
+            setError(t('signup.errors.invitationExpired'))
           } else if (result.code === 'INVITATION_NOT_FOUND') {
-            setError('Invalid invitation. Please request a new one.')
+            setError(t('signup.errors.invitationNotFound'))
           } else {
-            setError(result.error || 'Failed to create account')
+            setError(result.error || t('signup.errors.failedToCreate'))
           }
           setStatusMessage(t('signup.messages.createError', { error: result.error || 'Unknown error' }))
           return
         }
 
         // Success! Show toast and redirect to team page
-        toast.success('Account created successfully!', {
-          description: 'You have joined the team.'
+        toast.success(t('signup.messages.inviteSuccess'), {
+          description: t('signup.messages.inviteJoinedTeam')
         })
 
         // Redirect to team settings page
@@ -131,7 +131,7 @@ export function SignupForm() {
       setEmailSent(true)
       setStatusMessage(t('signup.messages.accountCreated'))
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create account'
+      const errorMessage = err instanceof Error ? err.message : t('signup.errors.failedToCreate')
       setError(errorMessage)
       setStatusMessage(t('signup.messages.createError', { error: errorMessage }))
     } finally {
@@ -145,7 +145,7 @@ export function SignupForm() {
     try {
       await googleSignIn(callbackUrl || undefined)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Google sign up failed')
+      setError(err instanceof Error ? err.message : t('signup.errors.googleFailed'))
     } finally {
       setLoadingProvider(null)
     }
@@ -162,10 +162,10 @@ export function SignupForm() {
         // Show success message (email already shows this state)
         setEmailSent(true)
       } else {
-        setError(result.error || 'Failed to resend verification email')
+        setError(result.error || t('signup.errors.failedToResend'))
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to resend verification email')
+      setError(err instanceof Error ? err.message : t('signup.errors.failedToResend'))
     } finally {
       setResendingEmail(false)
     }
@@ -193,10 +193,10 @@ export function SignupForm() {
           <CardHeader 
             className="space-y-1"
                       >
-            <div 
+            <div
               className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4"
               role="img"
-              aria-label="Email enviado exitosamente"
+              aria-label={t('signup.emailVerification.emailSentAria')}
             >
               <MailCheck className="w-6 h-6 text-green-600" aria-hidden="true" />
             </div>
@@ -220,23 +220,22 @@ export function SignupForm() {
           <Alert data-cy={sel('auth.verifyEmail.successMessage')}>
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
-              Please check your inbox and click the verification link to activate your account.
-              The link will expire in 24 hours.
+              {t('signup.emailVerification.checkInbox')}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2 text-sm text-muted-foreground">
             <p className="flex items-start gap-2">
               <span className="text-primary font-medium">1.</span>
-              Open your email inbox
+              {t('signup.emailVerification.step1')}
             </p>
             <p className="flex items-start gap-2">
               <span className="text-primary font-medium">2.</span>
-              Find the email from us (check spam if needed)
+              {t('signup.emailVerification.step2')}
             </p>
             <p className="flex items-start gap-2">
               <span className="text-primary font-medium">3.</span>
-              Click the verification button
+              {t('signup.emailVerification.step3')}
             </p>
           </div>
 
@@ -251,7 +250,7 @@ export function SignupForm() {
 
           <div className="text-center space-y-2">
             <p className="text-sm text-muted-foreground">
-              Didn&apos;t receive the email?
+              {t('signup.emailVerification.didntReceive')}
             </p>
             <div className="flex gap-2">
               <Button
@@ -263,7 +262,7 @@ export function SignupForm() {
                 className="flex-1"
               >
                 <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
-                Back
+                {t('signup.emailVerification.back')}
               </Button>
               <Button
                 variant="default"
@@ -274,12 +273,12 @@ export function SignupForm() {
                 {resendingEmail ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
+                    {t('signup.emailVerification.sending')}
                   </>
                 ) : (
                   <>
                     <Mail className="mr-2 h-4 w-4" />
-                    Resend Email
+                    {t('signup.emailVerification.resendEmail')}
                   </>
                 )}
               </Button>
@@ -288,9 +287,9 @@ export function SignupForm() {
         </CardContent>
         <CardFooter>
           <p className="text-sm text-muted-foreground text-center w-full">
-            Already verified?{' '}
+            {t('signup.emailVerification.alreadyVerified')}{' '}
             <Link href="/login" className="text-primary hover:underline font-medium">
-              Sign in
+              {t('signup.emailVerification.signIn')}
             </Link>
           </p>
         </CardFooter>
@@ -343,7 +342,7 @@ export function SignupForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First name</Label>
+              <Label htmlFor="firstName">{t('signup.form.firstName')}</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -351,7 +350,7 @@ export function SignupForm() {
                   id="firstName"
                   type="text"
                   autoComplete="given-name"
-                  placeholder="John"
+                  placeholder={t('signup.form.firstNamePlaceholder')}
                   className="pl-9"
                   data-cy={sel('auth.signup.firstName')}
                 />
@@ -364,7 +363,7 @@ export function SignupForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last name</Label>
+              <Label htmlFor="lastName">{t('signup.form.lastName')}</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -372,7 +371,7 @@ export function SignupForm() {
                   id="lastName"
                   type="text"
                   autoComplete="family-name"
-                  placeholder="Doe"
+                  placeholder={t('signup.form.lastNamePlaceholder')}
                   className="pl-9"
                   data-cy={sel('auth.signup.lastName')}
                 />
@@ -386,7 +385,7 @@ export function SignupForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('signup.form.email')}</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -394,7 +393,7 @@ export function SignupForm() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="email@example.com"
+                placeholder={t('signup.form.emailPlaceholder')}
                 className={`pl-9 ${fromInvite ? 'bg-muted cursor-not-allowed' : ''}`}
                 readOnly={fromInvite}
                 data-cy={sel('auth.signup.email')}
@@ -408,7 +407,7 @@ export function SignupForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('signup.form.password')}</Label>
             <PasswordInput
               {...register('password')}
               id="password"
@@ -416,6 +415,12 @@ export function SignupForm() {
               placeholder="••••••••"
               showRequirements={true}
               password={password}
+              requirementLabels={{
+                minChars: t('signup.form.passwordRequirements.minChars'),
+                uppercase: t('signup.form.passwordRequirements.uppercase'),
+                lowercase: t('signup.form.passwordRequirements.lowercase'),
+                number: t('signup.form.passwordRequirements.number'),
+              }}
               data-cy={sel('auth.signup.password')}
             />
             {errors.password && (
@@ -426,7 +431,7 @@ export function SignupForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm password</Label>
+            <Label htmlFor="confirmPassword">{t('signup.form.confirmPassword')}</Label>
             <PasswordInput
               {...register('confirmPassword')}
               id="confirmPassword"
@@ -455,13 +460,13 @@ export function SignupForm() {
               onCheckedChange={(checked: boolean | 'indeterminate') => setAgreedToTerms(checked as boolean)}
               data-cy={sel('auth.signup.termsCheckbox')}
             />
-            <Label 
-              htmlFor="terms" 
+            <Label
+              htmlFor="terms"
               className="text-sm font-normal cursor-pointer"
             >
-              I agree to the{' '}
+              {t('signup.form.agreeToThe')}{' '}
               <Link href="/terms" className="text-primary hover:underline">
-                terms and conditions
+                {t('signup.form.termsAndConditions')}
               </Link>
             </Label>
           </div>
@@ -475,10 +480,10 @@ export function SignupForm() {
             {loadingProvider === 'email' ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
+                {t('signup.form.creatingAccount')}
               </>
             ) : (
-              'Create account'
+              t('signup.form.createAccount')
             )}
           </Button>
         </form>
@@ -491,7 +496,7 @@ export function SignupForm() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
+                  {t('signup.form.orContinueWith')}
                 </span>
               </div>
             </div>
@@ -514,7 +519,7 @@ export function SignupForm() {
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
               )}
-              Continue with Google
+              {t('signup.form.continueWithGoogle')}
             </Button>
           </>
         )}
@@ -523,14 +528,14 @@ export function SignupForm() {
                     data-cy={sel('auth.signup.footer')}
         >
           <p className="text-sm text-muted-foreground text-center w-full">
-            Already have an account?{' '}
-            <Link 
-              href="/login" 
+            {t('signup.footer.alreadyHaveAccount')}{' '}
+            <Link
+              href="/login"
               className="text-primary hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-accent"
-              aria-label="Ir a página de inicio de sesión"
-                            data-cy={sel('auth.signup.loginLink')}
+              aria-label={t('signup.footer.signInAria')}
+              data-cy={sel('auth.signup.loginLink')}
             >
-              Sign in
+              {t('signup.footer.signIn')}
             </Link>
           </p>
         </CardFooter>
