@@ -50,6 +50,7 @@ export default defineConfig({
   // All source files - preserves module structure
   entry: await glob('src/**/*.{ts,tsx}', {
     ignore: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+    posix: true,
   }),
 
   // Output format
