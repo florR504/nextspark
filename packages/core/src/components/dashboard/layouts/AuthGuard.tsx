@@ -11,12 +11,16 @@ interface AuthGuardProps {
   children: React.ReactNode
 }
 
+function EnsureUserMetadata() {
+  useEnsureUserMetadata()
+  return null
+}
+
 export function AuthGuard({ children }: AuthGuardProps) {
   const { user, isLoading } = useAuth()
   const router = useRouter()
 
   useAuthMethodDetector()
-  useEnsureUserMetadata()
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -36,5 +40,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return null
   }
 
-  return <>{children}</>
+  return (
+    <>
+      <EnsureUserMetadata />
+      {children}
+    </>
+  )
 }

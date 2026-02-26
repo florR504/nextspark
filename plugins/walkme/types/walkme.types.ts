@@ -267,6 +267,13 @@ export interface WalkmeProviderProps {
   labels?: Partial<WalkmeLabels>
   /** User ID for scoping localStorage persistence per user */
   userId?: string
+  /**
+   * API URL for server-side state persistence (cross-device sync).
+   * Must support GET (fetch state) and POST (save state).
+   * If not provided, server sync is disabled — only localStorage is used.
+   * The theme provides this URL; the plugin never hardcodes theme paths.
+   */
+  serverSyncUrl?: string
 }
 
 // ---------------------------------------------------------------------------

@@ -76,8 +76,8 @@ export const WalkmeSpotlight = memo(function WalkmeSpotlight({
 
   const { refs, floatingStyles, isStable } = useStepPositioning(targetElement, {
     placement: getPlacementFromPosition(step.position ?? 'bottom'),
-    offset: 16,
-    padding: 8,
+    offset: 24,
+    padding: 12,
   })
 
   useEffect(() => {

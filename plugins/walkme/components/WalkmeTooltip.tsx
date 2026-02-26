@@ -47,19 +47,43 @@ export const WalkmeTooltip = memo(function WalkmeTooltip({
 }: WalkmeTooltipProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const { refs, floatingStyles, arrowRef, placement, isStable } = useStepPositioning(
+  const { refs, floatingStyles, arrowRef, placement, middlewareData, isStable } = useStepPositioning(
     targetElement,
     {
       placement: getPlacementFromPosition(step.position ?? 'auto'),
-      offset: 12,
-      padding: 8,
+      offset: 20,
+      padding: 12,
     },
   )
+
+  const arrowData = middlewareData.arrow as { x?: number; y?: number } | undefined
 
   // Focus the tooltip when positioning has stabilized
   useEffect(() => {
     if (isStable) containerRef.current?.focus()
   }, [isStable])
+
+  // Add a subtle highlight ring on the target element while tooltip is active
+  useEffect(() => {
+    if (!targetElement) return
+    const el = targetElement
+    const prev = {
+      outline: el.style.outline,
+      outlineOffset: el.style.outlineOffset,
+      borderRadius: el.style.borderRadius,
+      transition: el.style.transition,
+    }
+    el.style.outline = '2px solid var(--walkme-primary, oklch(0.588 0.243 264.376))'
+    el.style.outlineOffset = '4px'
+    el.style.borderRadius = '8px'
+    el.style.transition = 'outline 200ms ease-out'
+    return () => {
+      el.style.outline = prev.outline
+      el.style.outlineOffset = prev.outlineOffset
+      el.style.borderRadius = prev.borderRadius
+      el.style.transition = prev.transition
+    }
+  }, [targetElement])
 
   if (typeof window === 'undefined') return null
   if (!targetElement) return null
@@ -96,6 +120,8 @@ export const WalkmeTooltip = memo(function WalkmeTooltip({
         style={{
           backgroundColor: 'var(--walkme-bg, #ffffff)',
           ...getArrowBorders(placement),
+          ...(arrowData?.x != null ? { left: arrowData.x } : {}),
+          ...(arrowData?.y != null ? { top: arrowData.y } : {}),
         }}
       />
 

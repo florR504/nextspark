@@ -71,6 +71,7 @@ export function WalkmeProvider({
   conditionContext: externalConditionContext,
   labels: userLabels,
   userId,
+  serverSyncUrl,
 }: WalkmeProviderProps) {
   const labels = useMemo<WalkmeLabels>(
     () => ({ ...DEFAULT_LABELS, ...userLabels }),
@@ -98,10 +99,11 @@ export function WalkmeProvider({
   }, [rawTours, debug])
 
   // Core state management
-  const { state, dispatch, storage } = useTourState(validatedTours, {
+  const { state, dispatch, storage, serverSyncPending } = useTourState(validatedTours, {
     persistState,
     debug,
     userId,
+    serverSyncUrl,
   })
 
   // ---------------------------------------------------------------------------
@@ -234,6 +236,9 @@ export function WalkmeProvider({
 
   const evaluateTriggers = useCallback(() => {
     if (!state.initialized || state.activeTour || !autoStart) return
+    // Wait for server state before auto-triggering on fresh devices.
+    // Without this, tours flash for ~1s before server sync cancels them.
+    if (serverSyncPending) return
 
     const triggerContext: TriggerEvaluationContext = {
       currentRoute: pathname,
@@ -282,6 +287,7 @@ export function WalkmeProvider({
     state.completedTours,
     state.skippedTours,
     autoStart,
+    serverSyncPending,
     pathname,
     storage,
     externalConditionContext,
@@ -368,12 +374,12 @@ export function WalkmeProvider({
       if (result.found && result.element) {
         applyTarget(result.element)
       } else {
-        waitForTarget(activeStep.target!, { timeout: 5000 }).then((waitResult) => {
+        waitForTarget(activeStep.target!, { timeout: 20000 }).then((waitResult) => {
           if (waitResult.found && waitResult.element) {
             applyTarget(waitResult.element)
-          } else if (debug) {
+          } else {
             console.warn(
-              `[WalkMe] Target "${activeStep.target}" not found, step may display without anchor`,
+              `[WalkMe] Target "${activeStep.target}" not found after 20s wait`,
             )
           }
         })
@@ -438,7 +444,7 @@ export function WalkmeProvider({
   }, [state.activeTour, nextStep, prevStep, skipTour])
 
   // ---------------------------------------------------------------------------
-  // Body Scroll Lock (only for modal/floating steps that cover the page)
+  // Body Scroll Lock (only for step types with overlay)
   // ---------------------------------------------------------------------------
 
   const activeStepType = getActiveStep(state)?.type
@@ -446,8 +452,9 @@ export function WalkmeProvider({
     const isActive = state.activeTour?.status === 'active'
     if (!isActive) return
 
-    // Only lock scroll for step types that cover the viewport
-    if (activeStepType !== 'modal' && activeStepType !== 'floating') return
+    // Only lock scroll for types that use an overlay (modal, floating, spotlight)
+    // Tooltip type has no overlay — scroll should remain free
+    if (!activeStepType || activeStepType === 'tooltip') return
 
     const { style } = document.body
     const originalOverflow = style.overflow
