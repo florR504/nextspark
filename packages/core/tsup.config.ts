@@ -125,10 +125,6 @@ async function inlineUiPackage(distDir: string): Promise<void> {
   let failedFiles: string[] = []
 
   for (const file of uiFiles) {
-    // Only preserve "use client" if the original file had it
-    const content = await readFile(file, 'utf-8')
-    const hasUseClient = content.startsWith('"use client"') || content.startsWith("'use client'")
-
     try {
       await esbuild({
         entryPoints: [file],
@@ -140,8 +136,9 @@ async function inlineUiPackage(distDir: string): Promise<void> {
         jsxImportSource: 'react',
         // Only inline @nextsparkjs/ui - keep everything else external
         external: ['react', 'react/jsx-runtime', 'react-dom', '@radix-ui/*', 'class-variance-authority', 'clsx', 'tailwind-merge', 'lucide-react'],
-        // Preserve "use client" only if original had it
-        ...(hasUseClient && { banner: { js: '"use client";' } }),
+        // Always add "use client" - inlined @nextsparkjs/ui code contains React hooks
+        // (createContext, useContext, etc.) which require a client boundary
+        banner: { js: '"use client";' },
       })
 
       // Verify the file no longer contains bare @nextsparkjs/ui imports
