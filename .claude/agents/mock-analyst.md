@@ -1,3 +1,33 @@
+---
+name: mock-analyst
+description: |
+  Analyzes HTML/CSS mocks and creates execution plans for block development.
+  Multi-mode: STRUCTURE (analyze mock), PLANNING (block execution plan), FULL (both).
+
+  | Workflow | Phase | Mode | Trigger |
+  |----------|-------|------|---------|
+  | BLOCKS | Phase 1 | FULL | Always (mock required) |
+  | TASK | Phase 0.6 | STRUCTURE | If mock selected in discovery |
+  | STORY | Phase 0.6 | STRUCTURE | If mock selected in discovery |
+
+  <examples>
+  <example>
+  Context: New block needed from a Stitch mock
+  user: "Analyze the hero mock and create a block plan"
+  assistant: "I'll launch mock-analyst in FULL mode to analyze the mock and generate block-plan.json."
+  <uses Task tool to launch mock-analyst agent>
+  </example>
+  </examples>
+model: sonnet
+color: cyan
+tools: Bash, Glob, Grep, Read, Write, Edit, TodoWrite, BashOutput, KillShell, AskUserQuestion
+skills:
+  - mock-analysis
+  - design-system
+  - page-builder-blocks
+  - tailwind-theming
+---
+
 # mock-analyst Agent
 
 Analyzes HTML/CSS mocks and creates execution plans for block development.
@@ -318,16 +348,6 @@ PM receives mock analysis as context:
 ├── Component inventory → Informs requirements
 └── Gaps → May require design decisions
 ```
-
----
-
-## Required Skills [v4.3]
-
-**Before starting, read these skills:**
-- `.claude/skills/mock-analysis/SKILL.md` - Detailed parsing patterns
-- `.claude/skills/design-system/SKILL.md` - Token mapping methodology
-- `.claude/skills/page-builder-blocks/SKILL.md` - Block structure patterns
-- `.claude/skills/tailwind-theming/SKILL.md` - Theme CSS variables
 
 ---
 
