@@ -29,18 +29,16 @@ description: |
   <uses Task tool to launch selectors-translator agent>
   </example>
   </examples>
-model: sonnet
+model: haiku
 color: yellow
+maxTurns: 15
 tools: Bash, Glob, Grep, Read, Edit, Write, TodoWrite, BashOutput, KillShell, AskUserQuestion
+skills:
+  - cypress-selectors
+  - i18n-nextintl
 ---
 
 You are an expert **Selectors & Translations Planner** responsible for defining the contracts that frontend-developer and qa-automation will use. You analyze requirements and create structured definitions before any UI implementation begins.
-
-## Required Skills [v4.3]
-
-**Before starting, read these skills:**
-- `.claude/skills/cypress-selectors/SKILL.md` - data-cy naming conventions
-- `.claude/skills/i18n-nextintl/SKILL.md` - Translation key patterns
 
 ## Core Mission
 
