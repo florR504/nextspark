@@ -18,6 +18,9 @@ export const WalkmeProgress = memo(function WalkmeProgress({
   total,
   progressTemplate,
 }: WalkmeProgressProps) {
+  // Single-step tours don't need a progress indicator
+  if (total <= 1) return null
+
   const percentage = total > 0 ? Math.round(((current + 1) / total) * 100) : 0
   const progressLabel = (progressTemplate ?? 'Step {current} of {total}')
     .replace('{current}', String(current + 1))

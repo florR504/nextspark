@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { TourStep } from '../types/walkme.types'
 import { useStepPositioning, getPlacementFromPosition } from '../lib/positioning'
@@ -59,8 +59,13 @@ export const WalkmeSpotlight = memo(function WalkmeSpotlight({
     setTargetRect(targetElement.getBoundingClientRect())
   }, [targetElement])
 
-  useEffect(() => {
+  // Compute target rect BEFORE browser paints to avoid overlay flash without cutout
+  useLayoutEffect(() => {
     updateRect()
+  }, [updateRect])
+
+  // Keep rect updated on scroll, resize, and delayed re-measure
+  useEffect(() => {
     if (!targetElement) return
 
     const timer = setTimeout(updateRect, 100)
@@ -135,9 +140,11 @@ export const WalkmeSpotlight = memo(function WalkmeSpotlight({
             {step.content}
           </p>
 
-          <div className="mb-3">
-            <WalkmeProgress current={currentIndex} total={totalSteps} progressTemplate={labels?.progress} />
-          </div>
+          {totalSteps > 1 && (
+            <div className="mb-3">
+              <WalkmeProgress current={currentIndex} total={totalSteps} progressTemplate={labels?.progress} />
+            </div>
+          )}
 
           <WalkmeControls
             actions={step.actions}

@@ -137,10 +137,12 @@ export const WalkmeTooltip = memo(function WalkmeTooltip({
         {step.content}
       </p>
 
-      {/* Progress */}
-      <div className="mb-3">
-        <WalkmeProgress current={currentIndex} total={totalSteps} progressTemplate={labels?.progress} />
-      </div>
+      {/* Progress — hidden for single-step tours */}
+      {totalSteps > 1 && (
+        <div className="mb-3">
+          <WalkmeProgress current={currentIndex} total={totalSteps} progressTemplate={labels?.progress} />
+        </div>
+      )}
 
       {/* Controls */}
       <WalkmeControls

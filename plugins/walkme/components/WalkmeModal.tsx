@@ -122,10 +122,12 @@ export const WalkmeModal = memo(function WalkmeModal({
         {step.content}
       </p>
 
-      {/* Progress */}
-      <div className="mb-4">
-        <WalkmeProgress current={currentIndex} total={totalSteps} progressTemplate={labels?.progress} />
-      </div>
+      {/* Progress — hidden for single-step tours */}
+      {totalSteps > 1 && (
+        <div className="mb-4">
+          <WalkmeProgress current={currentIndex} total={totalSteps} progressTemplate={labels?.progress} />
+        </div>
+      )}
 
       {/* Controls */}
       <WalkmeControls

@@ -456,6 +456,9 @@ export function WalkmeProvider({
     // Tooltip type has no overlay — scroll should remain free
     if (!activeStepType || activeStepType === 'tooltip') return
 
+    // Don't lock scroll if target element hasn't been found on this page
+    if (!targetElement) return
+
     const { style } = document.body
     const originalOverflow = style.overflow
     const originalPaddingRight = style.paddingRight
@@ -471,7 +474,7 @@ export function WalkmeProvider({
       style.overflow = originalOverflow
       style.paddingRight = originalPaddingRight
     }
-  }, [state.activeTour?.status, activeStepType])
+  }, [state.activeTour?.status, activeStepType, targetElement])
 
   // ---------------------------------------------------------------------------
   // Cleanup
@@ -536,12 +539,15 @@ export function WalkmeProvider({
   const activeStep = getActiveStep(state)
   const showStep = activeTour && activeStep && state.activeTour?.status === 'active'
 
-  // Build screen reader announcement
+  // Build screen reader announcement (skip progress prefix for single-step tours)
   const srAnnouncement = showStep && state.activeTour
-    ? labels.progress
-        .replace('{current}', String(state.activeTour.currentStepIndex + 1))
-        .replace('{total}', String(activeTour!.steps.length))
-      + ': ' + activeStep.title
+    ? (activeTour!.steps.length > 1
+        ? labels.progress
+            .replace('{current}', String(state.activeTour.currentStepIndex + 1))
+            .replace('{total}', String(activeTour!.steps.length))
+          + ': '
+        : '')
+      + activeStep.title
     : ''
 
   return (
@@ -618,6 +624,11 @@ function StepRenderer({
   totalSteps,
   labels,
 }: StepRendererProps) {
+  // For step types that require a target element, wait until it's resolved.
+  // This prevents a flash of dark overlay before the spotlight/cutout appears.
+  const needsTarget = step.type === 'tooltip' || step.type === 'spotlight' || step.type === 'beacon'
+  if (needsTarget && !targetElement) return null
+
   const commonProps = {
     step,
     onNext,
