@@ -525,6 +525,11 @@ export async function handleGenericList(request: NextRequest): Promise<NextRespo
         systemFields.push('blocks')
       }
 
+      // Add soft delete columns when table.softDelete is enabled
+      if (entityConfig.table?.softDelete) {
+        systemFields.push('deletedAt', 'deletedBy')
+      }
+
       const configFields = entityConfig.fields
           .map((field: EntityField) => {
             // Add quotes for camelCase fields (any field with uppercase letters)
@@ -604,6 +609,11 @@ export async function handleGenericList(request: NextRequest): Promise<NextRespo
         query += ` AND t."userId" = $${paramIndex++}`
         queryParams.push(userId)
       }
+
+      // Soft delete filter: hide deleted rows for non-bypass users
+      if (entityConfig.table?.softDelete && !isBypass) {
+        query += ` AND t."deletedAt" IS NULL`
+      }
     } else if (fieldsParam && distinctParam) {
       // Distinct field values query
       const fieldName = fieldsParam
@@ -634,6 +644,11 @@ export async function handleGenericList(request: NextRequest): Promise<NextRespo
         queryParams.push(userId)
       }
 
+      // Soft delete filter: hide deleted rows for non-bypass users
+      if (entityConfig.table?.softDelete && !isBypass) {
+        query += ` AND t."deletedAt" IS NULL`
+      }
+
       query += ` ORDER BY "${fieldName}" ASC LIMIT $${paramIndex++}`
       queryParams.push(pagination.limit)
     } else {
@@ -661,6 +676,11 @@ export async function handleGenericList(request: NextRequest): Promise<NextRespo
       }
       // else: CASE 2/3 - Public or shared, no user filter (but still team-filtered)
       // else: CASE 4 - Admin bypass active, no user filter (see all records)
+
+      // Soft delete filter: hide deleted rows for non-bypass users
+      if (entityConfig.table?.softDelete && !isBypass) {
+        whereConditions.push(`t."deletedAt" IS NULL`)
+      }
 
       // Add search filter (searches in name, title, slug, and content fields)
       if (searchParam && searchParam.trim() !== '') {
@@ -1228,6 +1248,11 @@ export async function handleGenericRead(request: NextRequest, { params }: { para
       systemFields.push('blocks')
     }
 
+    // Add soft delete columns when table.softDelete is enabled
+    if (entityConfig.table?.softDelete) {
+      systemFields.push('deletedAt', 'deletedBy')
+    }
+
     const configFields = entityConfig.fields
         .map((field: EntityField) => {
           // Add quotes for camelCase fields (any field with uppercase letters)
@@ -1266,6 +1291,11 @@ export async function handleGenericRead(request: NextRequest, { params }: { para
     if (userId && !entityConfig.access?.shared && !isBypass) {
       query += ` AND t."userId" = $${paramIndex++}`
       queryParams.push(userId)
+    }
+
+    // Soft delete filter: hide deleted rows for non-bypass users
+    if (entityConfig.table?.softDelete && !isBypass) {
+      query += ` AND t."deletedAt" IS NULL`
     }
 
     const items = await queryWithRLS(query, queryParams, userId)
@@ -1705,11 +1735,25 @@ export async function handleGenericDelete(request: NextRequest, { params }: { pa
       deleteParams.push(authResult.user!.id)
     }
 
-    const deleteQuery = `
-      DELETE FROM "${tableName}"
-      WHERE ${whereConditions.join(' AND ')}
-      RETURNING id
-    `
+    let deleteQuery: string
+    if (entityConfig.table?.softDelete) {
+      // Soft delete: SET deletedAt + deletedBy instead of removing the row
+      whereConditions.push(`"deletedAt" IS NULL`)
+      deleteQuery = `
+        UPDATE "${tableName}"
+        SET "deletedAt" = NOW(), "deletedBy" = $${paramIndex++}
+        WHERE ${whereConditions.join(' AND ')}
+        RETURNING id
+      `
+      deleteParams.push(authResult.user!.id)
+    } else {
+      // Hard delete: remove the row
+      deleteQuery = `
+        DELETE FROM "${tableName}"
+        WHERE ${whereConditions.join(' AND ')}
+        RETURNING id
+      `
+    }
 
     const result = await mutateWithRLS(deleteQuery, deleteParams, authResult.user!.id)
 

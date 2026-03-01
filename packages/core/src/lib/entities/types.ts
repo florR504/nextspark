@@ -143,6 +143,12 @@ export interface EntityConfig {
   /** Database table name (optional - defaults to slug with underscores) */
   tableName?: string
 
+  /** Database table configuration */
+  table?: {
+    /** Enable soft delete (deletedAt/deletedBy columns). Default: false */
+    softDelete?: boolean
+  }
+
   // ==========================================
   // 2. ACCESS AND SCOPE CONFIGURATION
   // ==========================================
