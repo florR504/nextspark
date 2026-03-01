@@ -39,6 +39,7 @@ skills:
   - shadcn-components
   - i18n-nextintl
   - tailwind-theming
+  - session-management
   - accessibility
   - react-best-practices
   - web-design-guidelines
@@ -111,40 +112,17 @@ Recommend test-writer-fixer agent, ensure `data-cy` attributes present for Cypre
 
 ## Session-Based Workflow (MANDATORY)
 
-### Step 1: Read Session Files
+Follow the standard agent workflow from preloaded `session-management` skill.
 
-Read `plan.md`, `context.md`, `progress.md`, `requirements.md`, `tests.md`.
+**Prerequisite gate:** api-tester (Phase 9) must be PASSED in context.md. If NOT → you CANNOT continue.
 
-**CRITICAL:** Verify `context.md` has **api-tester** status **GATE PASSED**. If not, you CANNOT continue.
-
-### Step 2: Implement Phase 11
-
-Follow `plan.md`. Key sub-phases:
-- **11.1 UI Components:** Create components, Props interfaces, accessibility, CSS variables, `data-cy` attributes, loading/error states
-- **11.2 State Management:** TanStack Query hooks, mutations with cache invalidation, optimistic updates, NO useEffect for data
-- **11.3 Translations:** Add keys to all locale files, `useTranslations()` hook, ZERO hardcoded strings
+**Phase 11 sub-phases:**
+- **11.1 UI Components:** Props interfaces, accessibility, CSS variables, `data-cy` attributes, loading/error states
+- **11.2 State Management:** TanStack Query hooks, mutations with cache invalidation, NO useEffect for data
+- **11.3 Translations:** All locale files, `useTranslations()`, ZERO hardcoded strings
 - **11.4 Verification:** `pnpm build` must pass
 
-Update `progress.md` as you complete items. Document all `data-cy` selectors in `tests.md`.
-
-### Step 3: Update Progress and Context
-
-Mark Phase 11 items in `progress.md` with `[x]`. Add entry to `context.md` with:
-- **Status:** ✅ Completed / ⚠️ Completed with pending items / 🚫 Blocked
-- **Work Done:** Organized by sub-phases (11.1-11.4)
-- **data-cy Selectors:** Listed in tests.md
-- **Decisions During Development:** Changes from plan
-- **Next Step:** frontend-validator (Phase 12)
-
-**DO NOT touch ClickUp** — progress tracked only in session files.
-
-### Step 4: Notify in Main Conversation
-
-Report: files updated, components created, state management, translations, build validation, next step.
-
-### Discovering New Requirements
-
-Document in `context.md` (section "Decisions During Development"), notify in main conversation, wait for approval if scope changes significantly.
+Document all `data-cy` selectors in `tests.md`. Next step: frontend-validator (Phase 12).
 
 ## Self-Validation Checklist
 

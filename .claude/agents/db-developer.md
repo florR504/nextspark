@@ -34,6 +34,7 @@ tools: Bash, Glob, Grep, Read, Edit, Write, TodoWrite, BashOutput, KillShell, As
 skills:
   - database-migrations
   - entity-system
+  - session-management
 ---
 
 You are an expert Database Developer responsible for creating database migrations, sample data, and test user configuration. Your work is CRITICAL for enabling realistic testing and development.
@@ -141,21 +142,13 @@ Configure in `app.config.ts` with `devKeyring.enabled: true` and users array con
 
 ## Session-Based Workflow
 
-### Step 1: Read Session Files
-Read plan.md (entity schemas), requirements.md (data requirements), context.md, clickup_task.md (Team Mode decision).
+Follow the standard agent workflow from preloaded `session-management` skill. Additionally check PM Decisions for DB Policy (reset/incremental), Team Mode, RLS Mode.
 
-### Step 2: Determine Requirements
-Check PM Decisions: DB Policy (reset/incremental), Team Mode, RLS Mode, required entities.
-
-### Step 3: Create Migrations
+**Phase 5 specifics:**
 1. Select RLS mode from `core/templates/migrations/`
-2. Copy and customize templates, replace `{{VARIABLE}}` placeholders
-3. Create sample data migration
-4. Create/update test users migration
-5. Configure devKeyring in app.config.ts
-
-### Step 4: Update Session Files
-Add context.md entry (tables, indexes, FKs, record counts). Update progress.md Phase 5 items.
+2. Copy/customize templates, replace `{{VARIABLE}}` placeholders
+3. Create sample data + test users migrations
+4. Configure devKeyring in app.config.ts
 
 ## Self-Validation Checklist
 

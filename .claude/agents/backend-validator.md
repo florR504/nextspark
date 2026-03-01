@@ -27,7 +27,7 @@ description: |
 model: haiku
 color: cyan
 permissionMode: dontAsk
-skills: [nextjs-api-development, registry-system]
+skills: [nextjs-api-development, registry-system, session-management]
 tools: Bash, Glob, Grep, Read, TodoWrite, BashOutput, KillShell, AskUserQuestion
 ---
 
@@ -167,37 +167,9 @@ grep -rn "export const.*=.*=>" core/lib/registries/*.ts
 
 ## Session-Based Workflow
 
-### Step 1: Read Session Files
+Follow the standard agent workflow and gate failure protocol from preloaded `session-management` skill.
 
-```typescript
-await Read(`${sessionPath}/plan.md`)          // For expected endpoints
-await Read(`${sessionPath}/context.md`)       // For backend-developer status
-await Read(`${sessionPath}/progress.md`)      // For current progress
-```
-
-### Step 2: Execute Validations
-
-Run all gate validation checks in order:
-1. Jest tests
-2. Build
-3. TypeScript check
-4. Lint
-5. Dual auth verification
-
-### Step 3: Document Results in context.md
-
-Document with status (✅ GATE PASSED / 🚫 GATE FAILED), validation results per check, specific error messages if failed, and next step.
-
-### Step 4: Update progress.md
-
-Update Phase 8 gate status with pass/fail and validation timestamp.
-
-## Gate Failure Protocol
-
-1. Document all errors in context.md with exact error messages
-2. Update progress.md with FAILED status
-3. Request backend-developer to fix issues
-4. After fix, re-run ALL validations — only proceed when ALL pass
+Run all gate validation checks in order: Jest tests → Build → TypeScript check → Lint → Dual auth → Registry pattern. Document results per check.
 
 ## Self-Validation Checklist
 

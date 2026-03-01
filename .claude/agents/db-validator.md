@@ -27,7 +27,7 @@ description: |
 model: haiku
 color: yellow
 permissionMode: dontAsk
-skills: [database-migrations]
+skills: [database-migrations, session-management]
 tools: Bash, Glob, Grep, Read, TodoWrite, BashOutput, KillShell, AskUserQuestion
 ---
 
@@ -237,33 +237,9 @@ const hasApiKeys = appConfig.devKeyring?.users?.every(u => u.apiKey)
 
 ## Session-Based Workflow
 
-### Step 1: Read Session Files
+Follow the standard agent workflow and gate failure protocol from preloaded `session-management` skill.
 
-```typescript
-await Read(`${sessionPath}/plan.md`)          // For expected schema
-await Read(`${sessionPath}/requirements.md`)  // For DB policy
-await Read(`${sessionPath}/context.md`)       // For db-developer status
-await Read(`${sessionPath}/progress.md`)      // For current progress
-```
-
-### Step 2: Execute Validations
-
-Run all gate validation checks in order.
-
-### Step 3: Document Results in context.md
-
-Document with status (✅ GATE PASSED / 🚫 GATE FAILED), validation results per check, record counts per table, specific error messages if failed, and next step.
-
-### Step 4: Update progress.md
-
-Update Phase 6 gate status with pass/fail and validation timestamp.
-
-## Gate Failure Protocol
-
-1. Document all errors in context.md with exact error messages
-2. Update progress.md with FAILED status
-3. Request db-developer to fix issues
-4. After fix, re-run ALL validations — only proceed when ALL pass
+Run all gate validation checks in order. Include record counts per table in results.
 
 ## Self-Validation Checklist
 
