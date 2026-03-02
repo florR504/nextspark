@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 import { nextCookies } from "better-auth/next-js";
+import { emailOTP } from "better-auth/plugins";
 import { parseSSLConfig, stripSSLParams } from './db';
 import { EmailFactory, emailTemplates } from './email';
 import { I18N_CONFIG, USER_ROLES_CONFIG, TEAMS_CONFIG, AUTH_CONFIG, APP_CONFIG_MERGED, type UserRole } from './config';
@@ -172,6 +173,21 @@ export const auth = betterAuth({
   },
   plugins: [
     registrationGuardPlugin(), // Intercept OAuth signup attempts
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }) {
+        const template = emailTemplates.otpVerification({
+          email,
+          otp,
+          type,
+          appName: process.env.NEXT_PUBLIC_APP_NAME || 'Your App',
+        });
+        await emailService.send({ to: email, ...template });
+      },
+      otpLength: 6,
+      expiresIn: 300, // 5 minutes
+      sendVerificationOnSignUp: false,
+      disableSignUp: false, // auto-create user on first OTP sign-in
+    }),
     nextCookies(), // MUST be the last plugin for Next.js cookie handling
   ],
   session: {

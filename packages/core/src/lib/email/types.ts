@@ -60,3 +60,10 @@ export interface TeamInvitationEmailData extends EmailTemplateData {
   expiresIn: string;
   appName: string;
 }
+
+export interface OtpVerificationEmailData extends EmailTemplateData {
+  email: string;
+  otp: string;
+  type: string;
+  appName: string;
+}
