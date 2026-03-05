@@ -115,9 +115,9 @@ export function isInstalledAsPackage(root) {
     // - workspace: points to ../../packages/core or similar
     const linkTarget = readlinkSync(corePath)
 
-    // If symlink points to .pnpm/ directory, it's a real npm installation via pnpm
-    // The .pnpm directory is pnpm's content-addressable store
-    if (linkTarget.includes('.pnpm/') || linkTarget.includes('.pnpm\\')) {
+    // If symlink points to .pnpm/ or .pnpmN/ directory, it's a real npm installation via pnpm
+    // The .pnpm/.pnpm2/etc directory is pnpm's content-addressable store
+    if (/\.pnpm\d?[/\\]/.test(linkTarget)) {
       return true
     }
 
