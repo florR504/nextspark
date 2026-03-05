@@ -15,6 +15,7 @@ import {
 } from '../ui/table'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
+import { Skeleton } from '../ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -103,10 +104,26 @@ export function TeamPendingInvitations({ teamId }: TeamPendingInvitationsProps) 
     }
   })
 
-  // Don't show loading state - TeamMembersList already shows one
-  // and both load at the same time
   if (isLoading) {
-    return null
+    return (
+      <div className="space-y-4 mt-6" aria-busy="true">
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground" />
+          <Skeleton className="h-4 w-40" />
+        </div>
+        <div className="border rounded-md">
+          <div className="p-4 space-y-3">
+            {[0, 1].map((i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-4 w-24 ml-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (invitations.length === 0) {
