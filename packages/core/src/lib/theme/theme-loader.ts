@@ -138,9 +138,18 @@ function applyColorVariables(colors: Record<string, unknown>): void {
 }
 
 /**
+ * Check if theme has JS-defined colors (colors or darkColors in config)
+ */
+function hasJSColors(theme: ThemeConfig): boolean {
+  return !!(theme.config?.colors || theme.config?.darkColors)
+}
+
+/**
  * Apply the correct colors based on current mode (light/dark)
  */
 function applyCurrentModeColors(theme: ThemeConfig): void {
+  if (!hasJSColors(theme)) return
+
   const darkMode = isDarkMode()
   const colors = darkMode && theme.config?.darkColors
     ? theme.config.darkColors
@@ -148,12 +157,13 @@ function applyCurrentModeColors(theme: ThemeConfig): void {
 
   if (colors) {
     applyColorVariables(colors)
-    console.log(`[Theme] Applied ${darkMode ? 'dark' : 'light'} mode colors for theme: ${theme.name}`)
   }
 }
 
 /**
- * Setup observer to watch for dark mode changes
+ * Setup observer to watch for dark mode changes.
+ * Only creates the observer if the theme defines JS colors (config.colors/darkColors).
+ * Themes that rely purely on CSS variables (e.g., .dark {} in globals.css) don't need this.
  */
 function setupDarkModeObserver(theme: ThemeConfig): void {
   if (typeof window === 'undefined') return
@@ -161,13 +171,16 @@ function setupDarkModeObserver(theme: ThemeConfig): void {
   // Clean up existing observer
   if (darkModeObserver) {
     darkModeObserver.disconnect()
+    darkModeObserver = null
   }
 
-  // Create new observer
+  // Skip observer entirely if theme has no JS-defined colors
+  if (!hasJSColors(theme)) return
+
+  // Create new observer only for themes with JS colors
   darkModeObserver = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       if (mutation.attributeName === 'class') {
-        console.log('[Theme] Dark mode class changed, reapplying colors')
         applyCurrentModeColors(theme)
       }
     }
@@ -178,8 +191,6 @@ function setupDarkModeObserver(theme: ThemeConfig): void {
     attributes: true,
     attributeFilter: ['class']
   })
-
-  console.log('[Theme] Dark mode observer initialized')
 }
 
 /**
