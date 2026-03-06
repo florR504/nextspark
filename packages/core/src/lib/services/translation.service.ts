@@ -10,6 +10,7 @@
 import {
   THEME_TRANSLATION_LOADERS,
   ENTITY_TRANSLATION_LOADERS,
+  PLUGIN_ENTITY_TRANSLATION_LOADERS,
   TranslationLoader
 } from '@nextsparkjs/registries/translation-registry'
 
@@ -169,16 +170,80 @@ export class TranslationService {
    * ```
    */
   static async loadEntity(theme: string, entity: string, locale: string): Promise<Record<string, unknown>> {
+    // Load plugin translations as base (fallback)
+    const pluginBase = await this.loadPluginEntityFallback(entity, locale)
+
     const loader = this.getEntityLoader(theme, entity, locale)
-    if (!loader) return {} as Record<string, unknown>
+    if (!loader) return pluginBase
 
     try {
       const result = await loader()
-      return (result.default || result) as Record<string, unknown>
+      const themeTranslations = (result.default || result) as Record<string, unknown>
+      // Deep merge: plugin is base, theme overrides
+      return this.deepMerge(pluginBase, themeTranslations)
     } catch (error) {
       console.error(`[TranslationService] Failed to load entity translation for ${theme}/${entity}/${locale}:`, error)
-      return {} as Record<string, unknown>
+      return pluginBase
     }
+  }
+
+  /**
+   * Load plugin entity translation as fallback
+   * Searches all plugins for an entity with the given name and locale
+   *
+   * @param entity - Entity name (e.g., 'leadforms')
+   * @param locale - Locale code (e.g., 'en', 'es')
+   * @returns Merged plugin translations or empty object
+   */
+  private static async loadPluginEntityFallback(entity: string, locale: string): Promise<Record<string, unknown>> {
+    const result: Record<string, unknown> = {}
+
+    for (const pluginName of Object.keys(PLUGIN_ENTITY_TRANSLATION_LOADERS)) {
+      const entityLoaders = PLUGIN_ENTITY_TRANSLATION_LOADERS[pluginName]?.[entity]
+      const loader = entityLoaders?.[locale]
+      if (!loader) continue
+
+      try {
+        const data = await loader()
+        const translations = (data.default || data) as Record<string, unknown>
+        Object.assign(result, this.deepMerge(result, translations))
+      } catch (error) {
+        console.error(`[TranslationService] Failed to load plugin entity translation for ${pluginName}/${entity}/${locale}:`, error)
+      }
+    }
+
+    return result
+  }
+
+  /**
+   * Deep merge two objects. Values in `override` take priority over `base`.
+   * Only plain objects are merged recursively; other values are replaced.
+   */
+  private static deepMerge(
+    base: Record<string, unknown>,
+    override: Record<string, unknown>
+  ): Record<string, unknown> {
+    const result = { ...base }
+    for (const key of Object.keys(override)) {
+      const baseVal = result[key]
+      const overrideVal = override[key]
+      if (
+        baseVal !== null &&
+        overrideVal !== null &&
+        typeof baseVal === 'object' &&
+        typeof overrideVal === 'object' &&
+        !Array.isArray(baseVal) &&
+        !Array.isArray(overrideVal)
+      ) {
+        result[key] = this.deepMerge(
+          baseVal as Record<string, unknown>,
+          overrideVal as Record<string, unknown>
+        )
+      } else {
+        result[key] = overrideVal
+      }
+    }
+    return result
   }
 
   /**
@@ -263,6 +328,19 @@ export class TranslationService {
       const translations = await this.loadEntity(theme, entity, locale)
       if (Object.keys(translations).length > 0) {
         result[entity] = translations
+      }
+    }
+
+    // Also include plugin entities that have no theme override
+    const themeEntitySet = new Set(entities)
+    for (const pluginName of Object.keys(PLUGIN_ENTITY_TRANSLATION_LOADERS)) {
+      for (const entityName of Object.keys(PLUGIN_ENTITY_TRANSLATION_LOADERS[pluginName])) {
+        if (!themeEntitySet.has(entityName)) {
+          const translations = await this.loadPluginEntityFallback(entityName, locale)
+          if (Object.keys(translations).length > 0) {
+            result[entityName] = translations
+          }
+        }
       }
     }
 

@@ -292,6 +292,23 @@ export interface BuilderConfig {
   sidebarFields?: string[]
 
   /**
+   * Explicit field configurations for sidebar fields
+   * Enables relation selectors, dropdowns, etc. beyond simple text inputs.
+   * If provided, config for a field takes precedence over name-pattern inference.
+   */
+  sidebarFieldsConfig?: Array<{
+    name: string
+    type: 'text' | 'textarea' | 'relation' | 'select' | string
+    label?: string
+    relation?: {
+      entity: string
+      titleField: string
+      userFiltered?: boolean
+    }
+    options?: Array<{ value: string; label: string }>
+  }>
+
+  /**
    * Show slug input field in builder header
    * Default: true
    * Set to false for entities where slug is auto-generated (e.g., patterns)

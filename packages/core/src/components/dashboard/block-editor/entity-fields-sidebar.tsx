@@ -12,6 +12,14 @@ import { ScrollArea } from '../../ui/scroll-area'
 import { Checkbox } from '../../ui/checkbox'
 import { FileText, Image, Tag, Loader2 } from 'lucide-react'
 import type { ClientEntityConfig } from '@nextsparkjs/registries/entity-registry.client'
+import { SimpleRelationSelect } from '../../ui/simple-relation-select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '../../ui/select'
 
 interface TaxonomyItem {
   id: string
@@ -70,7 +78,80 @@ export function EntityFieldsSidebar({
   const renderField = (fieldName: string) => {
     const value = fields[fieldName] as string | undefined
 
-    // Determine field type from common patterns
+    // Check for explicit field config (relation support)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sidebarFieldsConfig = (entityConfig.builder as any)?.sidebarFieldsConfig as Array<{
+      name: string
+      type: string
+      label?: string
+      placeholder?: string
+      rows?: number
+      relation?: { entity: string; titleField: string; userFiltered?: boolean }
+      options?: Array<{ value: string; label: string }>
+    }> | undefined
+    const fieldConfig = sidebarFieldsConfig?.find(f => f.name === fieldName)
+
+    const fieldLabel = fieldConfig?.label
+      || fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1')
+
+    // Relation field: render combobox selector
+    if (fieldConfig?.type === 'relation' && fieldConfig.relation) {
+      return (
+        <div key={fieldName} className="space-y-2">
+          <Label htmlFor={fieldName}>{fieldLabel}</Label>
+          <SimpleRelationSelect
+            entityType={fieldConfig.relation.entity}
+            titleField={fieldConfig.relation.titleField}
+            value={value || undefined}
+            onChange={(v) => onChange(fieldName, v ?? null)}
+            userFiltered={fieldConfig.relation.userFiltered}
+            placeholder="Select..."
+          />
+        </div>
+      )
+    }
+
+    // Select field: render dropdown with options
+    if (fieldConfig?.type === 'select' && fieldConfig.options) {
+      return (
+        <div key={fieldName} className="space-y-2">
+          <Label htmlFor={fieldName}>{fieldLabel}</Label>
+          <Select value={value || ''} onValueChange={(v) => onChange(fieldName, v)}>
+            <SelectTrigger id={fieldName}>
+              <SelectValue placeholder="Select..." />
+            </SelectTrigger>
+            <SelectContent>
+              {fieldConfig.options.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )
+    }
+
+    // Explicit textarea type
+    if (fieldConfig?.type === 'textarea') {
+      return (
+        <div key={fieldName} className="space-y-2">
+          <Label htmlFor={fieldName} className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            {fieldLabel}
+          </Label>
+          <Textarea
+            id={fieldName}
+            value={value || ''}
+            onChange={(e) => onChange(fieldName, e.target.value)}
+            placeholder={fieldConfig.placeholder || t('placeholders.excerpt')}
+            rows={fieldConfig.rows || 4}
+            className="resize-none"
+            data-cy={sel('blockEditor.entityFieldsPanel.field', { name: fieldName })}
+          />
+        </div>
+      )
+    }
+
+    // Determine field type from common patterns (fallback when no explicit sidebarFieldsConfig)
     const isTextarea = fieldName.toLowerCase().includes('excerpt') ||
       fieldName.toLowerCase().includes('description') ||
       fieldName.toLowerCase().includes('summary')
@@ -78,8 +159,6 @@ export function EntityFieldsSidebar({
     const isImage = fieldName.toLowerCase().includes('image') ||
       fieldName.toLowerCase().includes('thumbnail') ||
       fieldName.toLowerCase().includes('photo')
-
-    const fieldLabel = fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1')
 
     if (isTextarea) {
       return (
@@ -168,7 +247,7 @@ export function EntityFieldsSidebar({
           {/* Entity Fields */}
           {sidebarFields.length > 0 && (
             <div className="space-y-4">
-              {sidebarFields.map(fieldName => renderField(fieldName))}
+              {sidebarFields.map((fieldName: string) => renderField(fieldName))}
             </div>
           )}
 

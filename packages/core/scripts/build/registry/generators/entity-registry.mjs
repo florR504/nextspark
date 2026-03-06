@@ -195,6 +195,7 @@ export function generateEntityRegistryClient(entities, config) {
     builder: ${entity.exportName}.builder ? {
       enabled: ${entity.exportName}.builder.enabled,
       sidebarFields: ${entity.exportName}.builder.sidebarFields,
+      sidebarFieldsConfig: ${entity.exportName}.builder.sidebarFieldsConfig,
       showSlug: ${entity.exportName}.builder.showSlug,
       public: ${entity.exportName}.builder.public,
       seo: ${entity.exportName}.builder.seo
@@ -272,6 +273,15 @@ export interface ClientEntityConfig {
   builder?: {
     enabled: boolean
     sidebarFields?: string[]
+    sidebarFieldsConfig?: Array<{
+      name: string
+      type: string
+      label?: string
+      placeholder?: string
+      rows?: number
+      relation?: { entity: string; titleField: string; userFiltered?: boolean }
+      options?: Array<{ value: string; label: string }>
+    }>
     showSlug?: boolean
     public?: { basePath: string }
     seo?: boolean

@@ -4,7 +4,8 @@ import * as React from "react"
 import { Button } from './button'
 import { Badge } from './badge'
 import { X } from "lucide-react"
-import { parseChildEntity, clientMetaSystemAdapter, getEntityApiPath } from '@nextsparkjs/registries/entity-registry.client'
+import { parseChildEntity, getEntityApiPath } from '@nextsparkjs/registries/entity-registry.client'
+import { fetchWithTeam } from '../../lib/api/entities'
 
 import {
   Popover,
@@ -129,12 +130,8 @@ export function SimpleRelationSelect({
             return []
           }
           
-          const response = await fetch(url.toString(), {
+          const response = await fetchWithTeam(url.toString(), {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(teamId && { 'x-team-id': teamId })
-            },
             credentials: 'include',
           })
 
@@ -183,12 +180,8 @@ export function SimpleRelationSelect({
           }
         }
         
-        const response = await fetch(url.toString(), {
+        const response = await fetchWithTeam(url.toString(), {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(teamId && { 'x-team-id': teamId })
-          },
           credentials: 'include',
         })
 
@@ -276,12 +269,8 @@ export function SimpleRelationSelect({
         }
       }
       
-      const response = await fetch(url.toString(), {
+      const response = await fetchWithTeam(url.toString(), {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(teamId && { 'x-team-id': teamId })
-        },
         credentials: 'include',
       })
 
@@ -367,12 +356,8 @@ export function SimpleRelationSelect({
             return []
           }
 
-          const response = await fetch(url.toString(), {
+          const response = await fetchWithTeam(url.toString(), {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(teamId && { 'x-team-id': teamId })
-            },
             credentials: 'include',
           })
 

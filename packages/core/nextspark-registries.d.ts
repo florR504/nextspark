@@ -136,6 +136,18 @@ declare module '@nextspark/registries/entity-registry' {
 // Entity Registry (Client)
 // ============================================================================
 declare module '@nextspark/registries/entity-registry.client' {
+  export interface ClientSidebarFieldConfig {
+    name: string
+    type: string
+    label?: string
+    relation?: {
+      entity: string
+      titleField: string
+      userFiltered?: boolean
+    }
+    options?: Array<{ value: string; label: string }>
+  }
+
   export interface ClientEntityConfig {
     slug: string
     label: string
@@ -151,6 +163,14 @@ declare module '@nextspark/registries/entity-registry.client' {
       tab?: string
       required?: boolean
     }>
+    builder?: {
+      enabled?: boolean
+      sidebarFields?: string[]
+      sidebarFieldsConfig?: ClientSidebarFieldConfig[]
+      showSlug?: boolean
+      seo?: boolean
+      public?: { basePath: string }
+    }
   }
 
   export interface ClientEntityRegistry {
