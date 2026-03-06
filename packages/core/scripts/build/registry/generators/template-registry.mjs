@@ -180,7 +180,13 @@ async function hasServerOnlyExports(filePath) {
       /import\s+.*from\s+['"]server-only['"]/,
     ]
 
-    for (const pattern of [...serverFunctionExports, ...serverConstExports, ...serverOnlyImports]) {
+    // Check if default export is an async function (server component marker in Next.js)
+    // async components cannot be used in 'use client' files
+    const asyncDefaultExport = [
+      /export\s+default\s+async\s+function/,
+    ]
+
+    for (const pattern of [...serverFunctionExports, ...serverConstExports, ...serverOnlyImports, ...asyncDefaultExport]) {
       if (pattern.test(content)) {
         return true
       }
