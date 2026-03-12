@@ -626,6 +626,11 @@ function generateFieldSchema(
       break
 
     // Media types
+    case 'media-library':
+      // Stores a media ID (string) from the Media Library
+      schema = z.string().nullable()
+      break
+
     case 'file':
     case 'video':
     case 'audio':

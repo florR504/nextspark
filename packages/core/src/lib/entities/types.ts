@@ -83,6 +83,7 @@ export type EntityFieldType =
   | 'image'          // Image upload con preview
   | 'video'          // Video upload
   | 'audio'          // Audio upload
+  | 'media-library'  // Selector from Media Library (stores media ID)
   
   // Specialized inputs
   | 'phone'          // Input de teléfono con validación
