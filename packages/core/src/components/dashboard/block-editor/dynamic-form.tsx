@@ -315,6 +315,15 @@ function RelationshipField({
   )
 }
 
+/**
+ * DynamicForm - Main form component for block property editing.
+ *
+ * Renders a collection of fields defined by `fieldDefinitions`, supporting
+ * grouping, conditional visibility, debounced updates, and all field types
+ * (text, select, media, relationship, date, array, etc.).
+ *
+ * Updates are debounced (500ms) to avoid excessive re-renders while the user types.
+ */
 export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormProps) {
   const t = useTranslations('admin.blockEditor.form')
   const [formValues, setFormValues] = useState(values)
@@ -366,6 +375,7 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
     }
   }, [formValues, onChange])
 
+  /** Updates a single field value in local form state. Memoized to avoid re-creating child components. */
   const handleFieldChange = useCallback((fieldName: string, value: unknown) => {
     setFormValues(prev => ({
       ...prev,
@@ -373,6 +383,7 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
     }))
   }, [])
 
+  /** Toggles the collapsed state of a field group or array field by its ID. */
   const toggleGroup = (groupId: string) => {
     setCollapsedGroups(prev => {
       const newSet = new Set(prev)
@@ -385,6 +396,10 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
     })
   }
 
+  /**
+   * Renders the input control for a single field based on its `type`.
+   * @param compact - When true, renders a smaller variant used inside collapsible groups.
+   */
   const renderField = (field: FieldDefinition, compact = false) => {
     const value = formValues[field.name] ?? field.default ?? ''
 
@@ -638,6 +653,10 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
     }
   }
 
+  /**
+   * Wraps a field control with its label, required indicator, and optional help text.
+   * @param compact - When true, reduces spacing and font size for use inside groups.
+   */
   const renderFieldWithLabel = (field: FieldDefinition, compact = false) => (
     <div key={field.name} className={cn('space-y-1.5', compact && 'space-y-1')}>
       <Label htmlFor={field.name} className={cn(compact && 'text-xs')}>
@@ -651,7 +670,10 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
     </div>
   )
 
-  // Render array fields as collapsible groups
+  /**
+   * Renders an `array` type field as a collapsible section with a header showing
+   * the item count. Keeps the form compact when the user has many array fields.
+   */
   const renderArrayFieldAsGroup = (field: FieldDefinition) => {
     const isCollapsed = collapsedGroups.has(field.name)
     const value = formValues[field.name]
@@ -703,6 +725,10 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
     )
   }
 
+  /**
+   * Renders a named field group as a collapsible section.
+   * Shows a "configured" badge in the header when any field in the group has a value.
+   */
   const renderGroup = (group: FieldGroup) => {
     const isCollapsed = collapsedGroups.has(group.id)
 
