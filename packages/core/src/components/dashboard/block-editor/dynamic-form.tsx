@@ -187,6 +187,7 @@ function RelationshipField({
   value: string | string[]
   onChange: (value: string | string[]) => void
 }) {
+  const t = useTranslations('admin.blockEditor.form')
   const displayField = field.displayField || 'name'
   const valueField = field.valueField || 'id'
   const isMulti = field.relationshipType === 'manyToMany'
@@ -208,7 +209,7 @@ function RelationshipField({
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground h-9">
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Loading {field.targetEntity}...</span>
+        <span>{t('loadingEntity', { entity: field.targetEntity })}</span>
       </div>
     )
   }
@@ -216,7 +217,7 @@ function RelationshipField({
   if (isError || !field.targetEntity) {
     return (
       <div className="text-sm text-destructive h-9 flex items-center">
-        Failed to load {field.targetEntity}
+        {t('failedToLoad', { entity: field.targetEntity })}
       </div>
     )
   }
@@ -238,7 +239,7 @@ function RelationshipField({
       <div className="space-y-1">
         {selectedIds.length > 0 && (
           <p className="text-xs text-muted-foreground">
-            {selectedIds.length} selected
+            {t('selectedCount', { count: selectedIds.length })}
           </p>
         )}
         <div
@@ -247,7 +248,7 @@ function RelationshipField({
         >
           {items.length === 0 && (
             <div className="px-3 py-4 text-sm text-muted-foreground text-center">
-              No {field.targetEntity} found
+              {t('noEntityFound', { entity: field.targetEntity })}
             </div>
           )}
           {items.map((item) => {
@@ -290,7 +291,7 @@ function RelationshipField({
       <SelectTrigger
         data-cy={sel('blockEditor.blockPropertiesPanel.form.field', { name: field.name })}
       >
-        <SelectValue placeholder={field.placeholder || `Select ${field.targetEntity}...`} />
+        <SelectValue placeholder={field.placeholder || t('selectEntity', { entity: field.targetEntity })} />
       </SelectTrigger>
       <SelectContent>
         {items.map((item) => {
@@ -306,7 +307,7 @@ function RelationshipField({
         })}
         {items.length === 0 && (
           <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-            No {field.targetEntity} found
+            {t('noEntityFound', { entity: field.targetEntity })}
           </div>
         )}
       </SelectContent>
@@ -573,7 +574,7 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
                 data-cy={sel('blockEditor.blockPropertiesPanel.form.field', { name: field.name })}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {value ? format(new Date(String(value)), "PPP") : "Pick a date"}
+                {value ? format(new Date(String(value)), "PPP") : t('pickDate')}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -684,7 +685,7 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
           </span>
           {hasValue && (
             <span className="text-xs text-primary font-normal">
-              {items.length} {items.length === 1 ? 'item' : 'items'}
+              {t('arrayItemsCount', { count: items.length })}
             </span>
           )}
         </button>
@@ -736,7 +737,7 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
             {group.label}
           </span>
           {hasValue && (
-            <span className="text-xs text-primary font-normal">configured</span>
+            <span className="text-xs text-primary font-normal">{t('configured')}</span>
           )}
         </button>
 
