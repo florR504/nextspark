@@ -317,6 +317,8 @@ export interface BuilderConfig {
       filter?: Record<string, string>
     }
     options?: Array<{ value: string; label: string }>
+    /** Show this field only when another sidebar field has a specific value */
+    conditionalOn?: { field: string; value: string | string[] }
   }>
 
   /**

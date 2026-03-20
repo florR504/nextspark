@@ -118,8 +118,20 @@ export function ConfigPanel({
       label?: string
       relation?: { entity: string; titleField: string; userFiltered?: boolean; limit?: number; filter?: Record<string, string> }
       options?: Array<{ value: string; label: string }>
+      /** Show this field only when another field has a specific value */
+      conditionalOn?: { field: string; value: string | string[] }
     }> | undefined
     const fieldConfig = sidebarFieldsConfig?.find(f => f.name === fieldName)
+
+    // Conditional visibility: hide field if condition not met
+    if (fieldConfig?.conditionalOn) {
+      const { field: depField, value: depValue } = fieldConfig.conditionalOn
+      const currentDepValue = entityFields[depField] as string | undefined
+      const allowedValues = Array.isArray(depValue) ? depValue : [depValue]
+      if (!currentDepValue || !allowedValues.includes(currentDepValue)) {
+        return null
+      }
+    }
 
     const fieldLabel = fieldConfig?.label
       || fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1')

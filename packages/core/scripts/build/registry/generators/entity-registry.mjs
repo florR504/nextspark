@@ -281,6 +281,7 @@ export interface ClientEntityConfig {
       rows?: number
       relation?: { entity: string; titleField: string; userFiltered?: boolean; limit?: number; filter?: Record<string, string> }
       options?: Array<{ value: string; label: string }>
+      conditionalOn?: { field: string; value: string | string[] }
     }>
     showSlug?: boolean
     public?: { basePath: string }
