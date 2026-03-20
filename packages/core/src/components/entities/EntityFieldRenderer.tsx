@@ -604,6 +604,8 @@ function renderFormField(
           parentId={parentIdForRelation}
           userFiltered={relationConfig.userFiltered}
           teamId={context?.teamId as string | undefined}
+          limit={relationConfig.limit}
+          filter={relationConfig.filter}
         />
       )
 

@@ -116,7 +116,7 @@ export function ConfigPanel({
       name: string
       type: string
       label?: string
-      relation?: { entity: string; titleField: string; userFiltered?: boolean }
+      relation?: { entity: string; titleField: string; userFiltered?: boolean; limit?: number; filter?: Record<string, string> }
       options?: Array<{ value: string; label: string }>
     }> | undefined
     const fieldConfig = sidebarFieldsConfig?.find(f => f.name === fieldName)
@@ -136,6 +136,8 @@ export function ConfigPanel({
             onChange={(v) => onEntityFieldChange(fieldName, v ?? null)}
             userFiltered={fieldConfig.relation.userFiltered}
             placeholder="Select..."
+            limit={fieldConfig.relation.limit}
+            filter={fieldConfig.relation.filter}
           />
         </div>
       )

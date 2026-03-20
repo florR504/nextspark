@@ -279,7 +279,7 @@ export interface ClientEntityConfig {
       label?: string
       placeholder?: string
       rows?: number
-      relation?: { entity: string; titleField: string; userFiltered?: boolean }
+      relation?: { entity: string; titleField: string; userFiltered?: boolean; limit?: number; filter?: Record<string, string> }
       options?: Array<{ value: string; label: string }>
     }>
     showSlug?: boolean

@@ -86,7 +86,7 @@ export function EntityFieldsSidebar({
       label?: string
       placeholder?: string
       rows?: number
-      relation?: { entity: string; titleField: string; userFiltered?: boolean }
+      relation?: { entity: string; titleField: string; userFiltered?: boolean; limit?: number; filter?: Record<string, string> }
       options?: Array<{ value: string; label: string }>
     }> | undefined
     const fieldConfig = sidebarFieldsConfig?.find(f => f.name === fieldName)
@@ -106,6 +106,8 @@ export function EntityFieldsSidebar({
             onChange={(v) => onChange(fieldName, v ?? null)}
             userFiltered={fieldConfig.relation.userFiltered}
             placeholder="Select..."
+            limit={fieldConfig.relation.limit}
+            filter={fieldConfig.relation.filter}
           />
         </div>
       )

@@ -50,6 +50,10 @@ export interface SimpleRelationSelectProps {
   userFiltered?: boolean
   // Team ID for team-scoped entity queries
   teamId?: string
+  /** Max items to load in dropdown (default: 20). Set higher for entities with many records. */
+  limit?: number
+  /** Query filter params appended to the API call (e.g., { type: 'generic' }) */
+  filter?: Record<string, string>
 }
 
 export function SimpleRelationSelect({
@@ -66,6 +70,8 @@ export function SimpleRelationSelect({
   propertyOptions = [],
   userFiltered = false,
   teamId,
+  limit = 20,
+  filter,
 }: SimpleRelationSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [options, setOptions] = React.useState<SimpleEntityOption[]>([])
@@ -167,12 +173,17 @@ export function SimpleRelationSelect({
 
           if (hasSpecificAPI) {
             url = new URL(`/api/v1/${apiPath}`, window.location.origin)
-            url.searchParams.set('limit', '20')
+            url.searchParams.set('limit', String(limit))
             if (parentId) {
               url.searchParams.set('parentId', parentId)
             }
             if (userFiltered) {
               url.searchParams.set('userFiltered', 'true')
+            }
+            if (filter) {
+              for (const [key, val] of Object.entries(filter)) {
+                url.searchParams.set(key, val)
+              }
             }
           } else {
             console.warn(`No specific API available for entity type: ${entityType}`)
@@ -208,7 +219,7 @@ export function SimpleRelationSelect({
     } finally {
       setLoading(false)
     }
-  }, [entityType, parentId, titleField, propField, usePropertyMode, userFiltered, loading, teamId])
+  }, [entityType, parentId, titleField, propField, usePropertyMode, userFiltered, loading, teamId, limit, filter])
 
   // Auto-load options for child entities when parentId is available
   React.useEffect(() => {

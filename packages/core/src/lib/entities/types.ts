@@ -313,6 +313,8 @@ export interface BuilderConfig {
       entity: string
       titleField: string
       userFiltered?: boolean
+      limit?: number
+      filter?: Record<string, string>
     }
     options?: Array<{ value: string; label: string }>
   }>
@@ -467,6 +469,10 @@ export interface EntityField {
     options?: FieldOption[]
     /** Filter results by current user (default: true for most entities) */
     userFiltered?: boolean
+    /** Max items to load in dropdown (default: 20). Set higher for entities with many records. */
+    limit?: number
+    /** Query filter params appended to the API call (e.g., { type: 'generic' }) */
+    filter?: Record<string, string>
   }
 }
 
