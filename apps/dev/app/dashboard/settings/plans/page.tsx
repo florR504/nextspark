@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 import { PricingTable } from '@nextsparkjs/core/components/billing'
-import { useRouter } from 'next/navigation'
+import { fetchWithTeam } from '@nextsparkjs/core/lib/api/entities'
+import { toast } from 'sonner'
 
 /**
  * Plans Settings Page
@@ -14,12 +15,28 @@ import { useRouter } from 'next/navigation'
  */
 function PlansPage() {
   const t = useTranslations('settings')
-  const router = useRouter()
+  const [loading, setLoading] = useState<string | null>(null)
 
-  const handleSelectPlan = useCallback((planSlug: string) => {
-    // Redirect to checkout API with selected plan
-    router.push(`/api/v1/billing/checkout?plan=${planSlug}`)
-  }, [router])
+  const handleSelectPlan = useCallback(async (planSlug: string) => {
+    setLoading(planSlug)
+    try {
+      const res = await fetchWithTeam('/api/v1/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planSlug, billingPeriod: 'monthly' }),
+      })
+      const data = await res.json()
+      if (data.success && data.data?.url) {
+        window.location.href = data.data.url
+      } else {
+        toast.error(data.error || 'Failed to create checkout session')
+      }
+    } catch {
+      toast.error('Failed to start checkout')
+    } finally {
+      setLoading(null)
+    }
+  }, [])
 
   return (
     <div className="max-w-6xl" data-cy="plans-settings-main">
