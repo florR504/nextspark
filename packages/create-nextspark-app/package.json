@@ -1,6 +1,6 @@
 {
   "name": "create-nextspark-app",
-  "version": "0.1.0-beta.127",
+  "version": "0.1.0-beta.128",
   "description": "Create a new NextSpark SaaS project",
   "type": "module",
   "bin": {
