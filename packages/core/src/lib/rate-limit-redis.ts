@@ -35,6 +35,7 @@ let Redis: UpstashRedis | null = null
 let Ratelimit: UpstashRatelimit | null = null
 let modulesLoaded = false
 let loadError: Error | null = null
+let redisUnconfiguredLogged = false  // Log once, not on every request
 
 // Lazy-loaded instances
 let redis: unknown | null = null
@@ -51,6 +52,9 @@ let readRateLimiterInstance: ReturnType<UpstashRatelimit['prototype']['limit']> 
   ? { limit: (id: string) => Promise<R> } | null
   : never = null
 let writeRateLimiterInstance: ReturnType<UpstashRatelimit['prototype']['limit']> extends Promise<infer R>
+  ? { limit: (id: string) => Promise<R> } | null
+  : never = null
+let webhookRateLimiterInstance: ReturnType<UpstashRatelimit['prototype']['limit']> extends Promise<infer R>
   ? { limit: (id: string) => Promise<R> } | null
   : never = null
 
@@ -117,6 +121,14 @@ async function loadUpstashModules(): Promise<boolean> {
         prefix: 'ratelimit:write',
         ephemeralCache: new Map(),
       })
+
+      webhookRateLimiterInstance = new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(500, '1 h'),
+        analytics: true,
+        prefix: 'ratelimit:webhook',
+        ephemeralCache: new Map(),
+      })
     }
 
     modulesLoaded = true
@@ -124,8 +136,7 @@ async function loadUpstashModules(): Promise<boolean> {
   } catch (error) {
     loadError = error as Error
     modulesLoaded = true
-    // Log only in development, not during build
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV !== 'production') {
       console.warn('[RateLimit] Upstash modules not available, using fallback:', (error as Error).message)
     }
     return false
@@ -148,7 +159,7 @@ export interface RateLimitCheckResult {
 /**
  * Rate limit tiers available for API endpoints
  */
-export type RateLimitTier = 'auth' | 'api' | 'strict' | 'read' | 'write'
+export type RateLimitTier = 'auth' | 'api' | 'strict' | 'read' | 'write' | 'webhook'
 
 /**
  * Default limits for each tier (used in fallback mode when Redis unavailable)
@@ -159,13 +170,14 @@ const DEFAULT_TIER_LIMITS: Record<RateLimitTier, number> = {
   strict: 10,
   read: 200,
   write: 50,
+  webhook: 500,
 }
 
 /**
  * Check rate limit for a given identifier
  *
  * @param identifier - Unique identifier (e.g., IP address, user ID, or combination)
- * @param type - Rate limit tier: 'auth' (5/15min), 'api' (100/1min), 'strict' (10/1hr), 'read' (200/1min), 'write' (50/1min)
+ * @param type - Rate limit tier: 'auth' (5/15min), 'api' (100/1min), 'strict' (10/1hr), 'read' (200/1min), 'write' (50/1min), 'webhook' (500/1hr)
  * @returns Promise with success status, remaining requests, and reset timestamp
  */
 export async function checkRateLimit(
@@ -182,13 +194,21 @@ export async function checkRateLimit(
     strict: strictRateLimiterInstance,
     read: readRateLimiterInstance,
     write: writeRateLimiterInstance,
+    webhook: webhookRateLimiterInstance,
   }
   const limiter = limiterMap[type]
 
-  // If no limiter (Redis not configured or modules not available), allow all requests
-  // Log warning to alert operators that rate limiting is disabled
+  // If no limiter (Redis not configured or modules not available), allow all requests.
+  // Log once at error level — this is a security degradation, not just a warning.
   if (!limiter) {
-    console.warn('[RateLimit] FALLBACK MODE: Rate limiting disabled - Redis unavailable. Identifier:', identifier, 'Tier:', type)
+    if (!redisUnconfiguredLogged) {
+      redisUnconfiguredLogged = true
+      console.error(
+        '[RateLimit] CRITICAL: Rate limiting is DISABLED (Redis unavailable).',
+        'Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to enable distributed rate limiting.',
+        'All requests are currently allowed through without limit enforcement.'
+      )
+    }
     return {
       success: true,
       remaining: DEFAULT_TIER_LIMITS[type],

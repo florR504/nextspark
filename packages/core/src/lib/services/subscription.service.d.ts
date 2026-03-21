@@ -10,7 +10,7 @@ import type { Subscription, SubscriptionWithPlan, SubscriptionStatus, QuotaInfo,
 export interface CreateSubscriptionOptions {
     billingInterval?: BillingInterval;
     trialDays?: number;
-    paymentProvider?: 'stripe' | 'paddle' | 'lemonsqueezy';
+    paymentProvider?: 'stripe' | 'polar';
     externalSubscriptionId?: string;
     externalCustomerId?: string;
 }
@@ -41,7 +41,7 @@ export declare class SubscriptionService {
      * const sub = await SubscriptionService.getActive('team-uuid-123')
      * console.log(sub?.plan.name) // 'Pro Plan'
      */
-    static getActive(teamId: string): Promise<SubscriptionWithPlan | null>;
+    static getActive(teamId: string, userId?: string): Promise<SubscriptionWithPlan | null>;
     /**
      * Get subscription by team ID (alias for getActive)
      *
@@ -117,7 +117,7 @@ export declare class SubscriptionService {
      *   console.log('Warnings:', result.downgradeWarnings)
      * }
      */
-    static changePlan(teamId: string, targetPlanSlug: string, billingInterval?: BillingInterval): Promise<ChangePlanResult>;
+    static changePlan(teamId: string, targetPlanSlug: string, billingInterval?: BillingInterval, userId?: string): Promise<ChangePlanResult>;
     /**
      * Pause subscription
      *
@@ -180,7 +180,7 @@ export declare class SubscriptionService {
         offset?: number;
     }): Promise<SubscriptionWithPlan[]>;
     /**
-     * Get subscription by external (Stripe) subscription ID
+     * Get subscription by external subscription ID from payment provider
      *
      * @param externalId - External subscription ID from payment provider
      * @returns Subscription with plan or null

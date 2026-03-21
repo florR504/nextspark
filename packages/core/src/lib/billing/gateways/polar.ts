@@ -38,6 +38,7 @@ import type {
   CreatePortalParams,
   CreateCustomerParams,
   UpdateSubscriptionParams,
+  CreateOneTimeCheckoutParams,
 } from './types'
 
 // Lazy-load Polar client to avoid initialization during build time
@@ -84,6 +85,26 @@ export class PolarGateway implements BillingGateway {
       id: result.id,
       url: result.url ?? null,
     }
+  }
+
+  async createOneTimeCheckout(params: CreateOneTimeCheckoutParams): Promise<CheckoutSessionResult> {
+    const { teamId, priceId, successUrl, cancelUrl, customerEmail, customerId, metadata } = params
+
+    // In Polar, priceId maps to a product ID (same convention as providerPriceIds in billing.config.ts).
+    // One-time vs recurring is determined by the product type configured in the Polar dashboard.
+    // Note: quantity is not a direct checkout parameter in Polar — configure it at the product level.
+    const checkoutParams: CheckoutCreate = {
+      products: [priceId],
+      successUrl,
+      metadata: { teamId, ...metadata },
+      allowTrial: false, // one-time purchases should never start a trial
+      ...(cancelUrl && { returnUrl: cancelUrl }),
+      ...(customerEmail && { customerEmail }),
+      ...(customerId && { customerId }),
+    }
+
+    const result = await getPolar().checkouts.create(checkoutParams)
+    return { id: result.id, url: result.url ?? null }
   }
 
   async createPortalSession(params: CreatePortalParams): Promise<PortalSessionResult> {
@@ -209,6 +230,23 @@ export class PolarGateway implements BillingGateway {
       status: result.status ?? 'canceled',
       cancelAtPeriodEnd: false,
     }
+  }
+
+  getProviderName(): string {
+    return 'Polar'
+  }
+
+  getResourceHintDomains(): { preconnect: string[]; dnsPrefetch: string[] } {
+    // Polar uses redirect-based checkout and server-side API calls.
+    // No browser-side resources to hint.
+    return { preconnect: [], dnsPrefetch: [] }
+  }
+
+  getSubscriptionDashboardUrl(externalSubscriptionId: string | null | undefined): string | null {
+    if (!externalSubscriptionId) return null
+    // Polar doesn't support deep-linking to individual subscriptions.
+    // Link to the general sales/subscriptions page instead.
+    return 'https://polar.sh/dashboard/sales/subscriptions'
   }
 
   async reactivateSubscription(subscriptionId: string): Promise<SubscriptionResult> {

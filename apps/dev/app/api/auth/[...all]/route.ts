@@ -7,6 +7,7 @@ import { isPublicSignupRestricted } from "@nextsparkjs/core/lib/teams/helpers";
 // Currently domain validation happens in auth.ts databaseHooks
 import { TeamService } from "@nextsparkjs/core/lib/services";
 import { wrapAuthHandlerWithCors, handleCorsPreflightRequest, addCorsHeaders } from "@nextsparkjs/core/lib/api/helpers";
+import { checkDistributedRateLimit } from "@nextsparkjs/core/lib/api/rate-limit";
 
 const handlers = toNextJsHandler(auth);
 
@@ -45,6 +46,40 @@ export async function GET(req: NextRequest, context: { params: Promise<{ all: st
 
 // Intercept signup requests to validate registration mode
 export async function POST(req: NextRequest) {
+  // Rate limiting: 5 requests per 15 minutes per IP (tier: auth).
+  // Protects login/signup against brute-force and credential stuffing attacks.
+  // IP extraction strategy:
+  // - Cloudflare: cf-connecting-ip (set by Cloudflare, not spoofable behind CF)
+  // - Vercel/trusted proxies: rightmost non-private IP in x-forwarded-for
+  // - Fallback: x-real-ip or 'unknown'
+  const clientIp = (() => {
+    // Cloudflare sets this header and it cannot be spoofed when behind CF
+    const cfIp = req.headers.get('cf-connecting-ip')
+    if (cfIp) return cfIp
+
+    // x-forwarded-for: use rightmost entry (last proxy-appended value is most trustworthy)
+    const forwardedFor = req.headers.get('x-forwarded-for')
+    if (forwardedFor) {
+      const ips = forwardedFor.split(',').map(ip => ip.trim()).filter(Boolean)
+      if (ips.length > 0) return ips[ips.length - 1]
+    }
+
+    return req.headers.get('x-real-ip') || 'unknown'
+  })()
+  const rateLimitResult = await checkDistributedRateLimit(`auth:ip:${clientIp}`, 'auth')
+  if (!rateLimitResult.allowed) {
+    return new NextResponse(JSON.stringify({ error: 'Too many requests' }), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': '900',
+        'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+      },
+    })
+  }
+
   const pathname = req.nextUrl.pathname;
 
   // Determine request type

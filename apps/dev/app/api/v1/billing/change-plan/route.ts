@@ -2,7 +2,7 @@
  * Change Plan Endpoint
  *
  * Allows users to upgrade or downgrade their subscription plan.
- * Handles proration via Stripe automatically.
+ * Handles proration via the payment provider automatically.
  *
  * P1-3: Plan Change con Proration
  */
@@ -82,7 +82,7 @@ export const POST = withRateLimitTier(async (request: NextRequest) => {
   const { planSlug, billingInterval } = parseResult.data
 
   // 5. Execute plan change
-  const result = await SubscriptionService.changePlan(teamId, planSlug, billingInterval)
+  const result = await SubscriptionService.changePlan(teamId, planSlug, billingInterval, authResult.user.id)
 
   if (!result.success) {
     return NextResponse.json({ success: false, error: result.error }, { status: 400 })

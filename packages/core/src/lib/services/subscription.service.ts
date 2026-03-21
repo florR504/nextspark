@@ -7,7 +7,7 @@
  * @module SubscriptionService
  */
 
-import { queryOneWithRLS, queryWithRLS, mutateWithRLS } from '../db'
+import { queryOneWithRLS, queryWithRLS, mutateWithRLS, getTransactionClient } from '../db'
 import { doAction } from '../plugins/hook-system'
 import { BILLING_REGISTRY } from '@nextsparkjs/registries/billing-registry'
 import { PlanService } from './plan.service'
@@ -28,6 +28,7 @@ import type {
   Usage,
   CanPerformActionResult,
   BillingInterval,
+  PaymentProvider,
 } from '../billing/types'
 
 // ===========================================
@@ -37,7 +38,7 @@ import type {
 export interface CreateSubscriptionOptions {
   billingInterval?: BillingInterval
   trialDays?: number
-  paymentProvider?: 'stripe' | 'paddle' | 'lemonsqueezy'
+  paymentProvider?: PaymentProvider
   externalSubscriptionId?: string
   externalCustomerId?: string
 }
@@ -88,7 +89,7 @@ export class SubscriptionService {
    * const sub = await SubscriptionService.getActive('team-uuid-123')
    * console.log(sub?.plan.name) // 'Pro Plan'
    */
-  static async getActive(teamId: string): Promise<SubscriptionWithPlan | null> {
+  static async getActive(teamId: string, userId?: string): Promise<SubscriptionWithPlan | null> {
     if (!teamId || teamId.trim() === '') {
       throw new Error('Team ID is required')
     }
@@ -105,7 +106,8 @@ export class SubscriptionService {
       ORDER BY s."createdAt" DESC
       LIMIT 1
       `,
-      [teamId]
+      [teamId],
+      userId
     )
 
     if (!result) return null
@@ -430,7 +432,8 @@ export class SubscriptionService {
   static async changePlan(
     teamId: string,
     targetPlanSlug: string,
-    billingInterval: BillingInterval = 'monthly'
+    billingInterval: BillingInterval = 'monthly',
+    userId?: string
   ): Promise<ChangePlanResult> {
     if (!teamId || teamId.trim() === '') {
       return { success: false, error: 'Team ID is required' }
@@ -440,8 +443,8 @@ export class SubscriptionService {
       return { success: false, error: 'Target plan slug is required' }
     }
 
-    // 1. Get current subscription
-    const currentSub = await this.getActive(teamId)
+    // 1. Get current subscription (pass userId for RLS context)
+    const currentSub = await this.getActive(teamId, userId)
     if (!currentSub?.externalSubscriptionId) {
       return { success: false, error: 'No active subscription found' }
     }
@@ -474,7 +477,6 @@ export class SubscriptionService {
       await getBillingGateway().updateSubscriptionPlan({
         subscriptionId: currentSub.externalSubscriptionId,
         newPriceId,
-        prorationBehavior: 'create_prorations',
       })
 
       // 6. Get local plan ID from DB
@@ -483,44 +485,61 @@ export class SubscriptionService {
         return { success: false, error: 'Plan not found in database' }
       }
 
-      // 7. Update local subscription
-      await queryWithRLS(
-        `
-        UPDATE "subscriptions"
-        SET
-          "planId" = $1,
-          "billingInterval" = $2,
-          metadata = jsonb_set(
-            COALESCE(metadata, '{}'::jsonb),
-            '{previousPlanSlug}',
-            $3::jsonb
-          ),
-          "updatedAt" = NOW()
-        WHERE "teamId" = $4 AND status IN ('active', 'trialing')
-        `,
-        [targetPlan.id, billingInterval, JSON.stringify(currentSub.plan.slug), teamId]
-      )
+      // 7-8. Update local subscription + log billing event in a transaction
+      // This ensures DB consistency if either query fails after Stripe succeeded
+      // NOTE: Transaction runs WITHOUT userId context so that the
+      // prevent_subscription_field_tampering trigger allows the planId/status update.
+      // Auth + permission checks have already been verified by the API route.
+      const tx = await getTransactionClient()
+      try {
+        await tx.query(
+          `
+          UPDATE "subscriptions"
+          SET
+            "planId" = $1,
+            "billingInterval" = $2,
+            metadata = jsonb_set(
+              COALESCE(metadata, '{}'::jsonb),
+              '{previousPlanSlug}',
+              $3::jsonb
+            ),
+            "updatedAt" = NOW()
+          WHERE "teamId" = $4 AND status IN ('active', 'trialing')
+          `,
+          [targetPlan.id, billingInterval, JSON.stringify(currentSub.plan.slug), teamId]
+        )
 
-      // 8. Log billing event
-      await queryWithRLS(
-        `
-        INSERT INTO "billing_events" (id, "subscriptionId", type, status, metadata, "createdAt")
-        VALUES ($1, $2, 'lifecycle', 'succeeded', $3, NOW())
-        `,
-        [
-          crypto.randomUUID(),
-          currentSub.id,
-          JSON.stringify({
-            action: 'plan_change',
-            fromPlan: currentSub.plan.slug,
-            toPlan: targetPlanSlug,
-            billingInterval,
-          }),
-        ]
-      )
+        await tx.query(
+          `
+          INSERT INTO "billing_events" (id, "subscriptionId", type, status, amount, currency, metadata, "createdAt")
+          VALUES ($1, $2, 'lifecycle', 'succeeded', $3, $4, $5, NOW())
+          `,
+          [
+            crypto.randomUUID(),
+            currentSub.id,
+            0,
+            'usd',
+            JSON.stringify({
+              action: 'plan_change',
+              fromPlan: currentSub.plan.slug,
+              toPlan: targetPlanSlug,
+              billingInterval,
+            }),
+          ]
+        )
+
+        await tx.commit()
+      } catch (dbError) {
+        await tx.rollback()
+        console.error('[SubscriptionService.changePlan] DB transaction failed after provider update:', dbError)
+        return {
+          success: false,
+          error: 'Plan changed in payment provider but local DB update failed. Please contact support.',
+        }
+      }
 
       // 9. Get updated subscription
-      const updatedSub = await this.getActive(teamId)
+      const updatedSub = await this.getActive(teamId, userId)
 
       // 10. Emit subscription updated hook for plan change
       await doAction('subscription.updated', {
@@ -702,7 +721,7 @@ export class SubscriptionService {
   }
 
   /**
-   * Get subscription by external (Stripe) subscription ID
+   * Get subscription by external subscription ID (from payment provider)
    *
    * @param externalId - External subscription ID from payment provider
    * @returns Subscription with plan or null

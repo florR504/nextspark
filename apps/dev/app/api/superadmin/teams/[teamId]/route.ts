@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getTypedSession } from '@nextsparkjs/core/lib/auth';
 import { queryWithRLS } from '@nextsparkjs/core/lib/db';
 import { withRateLimitTier } from '@nextsparkjs/core/lib/api/rate-limit';
+import { getBillingGateway } from '@nextsparkjs/core/lib/billing/gateways/factory';
 
 interface TeamResult {
   id: string;
@@ -37,6 +38,7 @@ interface SubscriptionResult {
   cancelAtPeriodEnd: boolean;
   externalSubscriptionId: string | null;
   externalCustomerId: string | null;
+  paymentProvider: string | null;
   createdAt: string;
 }
 
@@ -144,6 +146,7 @@ export const GET = withRateLimitTier(async (
         s."cancelAtPeriodEnd",
         s."externalSubscriptionId",
         s."externalCustomerId",
+        s."paymentProvider",
         s."createdAt"
       FROM "subscriptions" s
       LEFT JOIN "plans" p ON s."planId" = p.id
@@ -242,6 +245,9 @@ export const GET = withRateLimitTier(async (
         cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
         externalSubscriptionId: subscription.externalSubscriptionId,
         externalCustomerId: subscription.externalCustomerId,
+        paymentProvider: subscription.paymentProvider,
+        providerName: getBillingGateway().getProviderName(),
+        providerDashboardUrl: getBillingGateway().getSubscriptionDashboardUrl(subscription.externalSubscriptionId),
         createdAt: subscription.createdAt
       } : null,
       billingHistory: billingEventsResult.map((event) => ({

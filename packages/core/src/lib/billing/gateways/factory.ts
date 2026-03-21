@@ -2,8 +2,7 @@
  * Billing Gateway Factory
  *
  * Returns the configured BillingGateway implementation based on the
- * provider setting in the billing registry. Uses lazy loading so that
- * provider SDKs (Stripe, Polar, etc.) are only imported when needed.
+ * provider setting in the billing registry.
  *
  * Usage:
  *   import { getBillingGateway } from '@nextsparkjs/core/lib/billing/gateways/factory'
@@ -11,6 +10,8 @@
  */
 
 import { BILLING_REGISTRY } from '@nextsparkjs/registries/billing-registry'
+import { StripeGateway } from './stripe'
+import { PolarGateway } from './polar'
 import type { BillingGateway } from './interface'
 
 let gatewayInstance: BillingGateway | null = null
@@ -25,21 +26,16 @@ export function getBillingGateway(): BillingGateway {
   if (!gatewayInstance) {
     const provider = BILLING_REGISTRY.provider
     switch (provider) {
-      case 'stripe': {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { StripeGateway } = require('./stripe') as typeof import('./stripe')
+      case 'stripe':
         gatewayInstance = new StripeGateway()
         break
-      }
-      case 'polar': {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { PolarGateway } = require('./polar') as typeof import('./polar')
+      case 'polar':
         gatewayInstance = new PolarGateway()
         break
-      }
       // Future providers:
       // case 'paddle': { ... }
       // case 'lemonsqueezy': { ... }
+      // case 'mercadopago': { ... }
       default:
         throw new Error(
           `Unsupported billing provider: "${provider}". ` +
@@ -49,6 +45,22 @@ export function getBillingGateway(): BillingGateway {
     }
   }
   return gatewayInstance
+}
+
+/**
+ * Get resource hint domains for the configured billing provider.
+ * Use in <head> for performance optimization.
+ *
+ * @example
+ * // In layout.tsx:
+ * const { preconnect, dnsPrefetch } = getBillingResourceHints()
+ */
+export function getBillingResourceHints(): { preconnect: string[]; dnsPrefetch: string[] } {
+  try {
+    return getBillingGateway().getResourceHintDomains()
+  } catch {
+    return { preconnect: [], dnsPrefetch: [] }
+  }
 }
 
 /**

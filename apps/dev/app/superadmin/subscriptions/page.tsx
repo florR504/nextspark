@@ -79,6 +79,8 @@ interface Subscription {
   canceledAt: string | null;
   cancelAtPeriodEnd: boolean;
   externalSubscriptionId: string | null;
+  paymentProvider: string | null;
+  providerDashboardUrl: string | null;
   createdAt: string;
 }
 
@@ -590,21 +592,21 @@ function SubscriptionsPage() {
                                 View Team
                               </Link>
                             </Button>
-                            {sub.externalSubscriptionId && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                asChild
-                                className="text-muted-foreground"
-                              >
-                                <a
-                                  href={`https://dashboard.stripe.com/test/subscriptions/${sub.externalSubscriptionId}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                            {sub.providerDashboardUrl && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  asChild
+                                  className="text-muted-foreground"
                                 >
-                                  <ExternalLink className="h-4 w-4" />
-                                </a>
-                              </Button>
+                                  <a
+                                    href={sub.providerDashboardUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                  </a>
+                                </Button>
                             )}
                           </div>
                         </TableCell>

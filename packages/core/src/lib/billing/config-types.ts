@@ -49,11 +49,7 @@ export interface PlanDefinition {
   features: string[]
   /** Map of limitSlug -> value (-1 means unlimited) */
   limits: Record<string, number>
-  /** Stripe price IDs (P2: Stripe Integration) */
-  stripePriceIdMonthly?: string | null
-  stripePriceIdYearly?: string | null
-
-  /** Generic price IDs for any payment provider (checked first, falls back to stripe-specific) */
+  /** Price IDs for the configured payment provider (monthly and yearly) */
   providerPriceIds?: {
     monthly?: string | null
     yearly?: string | null
@@ -87,7 +83,7 @@ export interface ActionMappings {
 // ===========================================
 
 export interface BillingConfig {
-  /** Payment provider: stripe, paddle, lemonsqueezy */
+  /** Payment provider: stripe, polar */
   provider: PaymentProvider
 
   /** Default currency (ISO 4217) */

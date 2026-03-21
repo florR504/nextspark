@@ -9,6 +9,7 @@
 
 import Stripe from 'stripe'
 import { BILLING_REGISTRY } from '@nextsparkjs/registries/billing-registry'
+import { PlanService } from '../../services/plan.service'
 import type { BillingGateway } from './interface'
 import type {
   CheckoutSessionResult,
@@ -20,10 +21,8 @@ import type {
   CreatePortalParams,
   CreateCustomerParams,
   UpdateSubscriptionParams,
+  CreateOneTimeCheckoutParams,
 } from './types'
-
-// Re-export param types for backward compat
-export type { CreateCheckoutParams, CreatePortalParams, UpdateSubscriptionParams } from './types'
 
 // Lazy-load Stripe client to avoid initialization during build time
 let stripeInstance: Stripe | null = null
@@ -56,11 +55,9 @@ export class StripeGateway implements BillingGateway {
       throw new Error(`Plan ${planSlug} not found in BILLING_REGISTRY`)
     }
 
-    const priceId =
-      billingPeriod === 'yearly' ? planConfig.stripePriceIdYearly : planConfig.stripePriceIdMonthly
-
+    const priceId = PlanService.getPriceId(planSlug, billingPeriod)
     if (!priceId) {
-      throw new Error(`No Stripe price configured for ${planSlug} ${billingPeriod}`)
+      throw new Error(`No price ID configured for ${planSlug} ${billingPeriod}`)
     }
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -85,6 +82,29 @@ export class StripeGateway implements BillingGateway {
       sessionParams.subscription_data = {
         trial_period_days: planConfig.trialDays
       }
+    }
+
+    const session = await getStripe().checkout.sessions.create(sessionParams)
+    return { id: session.id, url: session.url }
+  }
+
+  async createOneTimeCheckout(params: CreateOneTimeCheckoutParams): Promise<CheckoutSessionResult> {
+    const { teamId, priceId, quantity = 1, successUrl, cancelUrl, customerEmail, customerId, metadata } = params
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity }],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: { teamId, ...metadata },
+      client_reference_id: teamId,
+    }
+
+    if (customerId) {
+      sessionParams.customer = customerId
+    } else if (customerEmail) {
+      sessionParams.customer_email = customerEmail
     }
 
     const session = await getStripe().checkout.sessions.create(sessionParams)
@@ -184,6 +204,26 @@ export class StripeGateway implements BillingGateway {
     }
   }
 
+  getProviderName(): string {
+    return 'Stripe'
+  }
+
+  getResourceHintDomains(): { preconnect: string[]; dnsPrefetch: string[] } {
+    return {
+      // js.stripe.com: Stripe.js SDK loaded on page render
+      preconnect: ['https://js.stripe.com'],
+      // api.stripe.com: called by Stripe.js after user fills payment form (too late for preconnect)
+      dnsPrefetch: ['https://api.stripe.com'],
+    }
+  }
+
+  getSubscriptionDashboardUrl(externalSubscriptionId: string | null | undefined): string | null {
+    if (!externalSubscriptionId) return null
+    const isLive = process.env.STRIPE_SECRET_KEY?.startsWith('sk_live')
+    const prefix = isLive ? '' : 'test/'
+    return `https://dashboard.stripe.com/${prefix}subscriptions/${externalSubscriptionId}`
+  }
+
   async reactivateSubscription(subscriptionId: string): Promise<SubscriptionResult> {
     const updated = await getStripe().subscriptions.update(subscriptionId, {
       cancel_at_period_end: false
@@ -196,65 +236,3 @@ export class StripeGateway implements BillingGateway {
   }
 }
 
-// ===========================================
-// ESCAPE HATCH: Raw Stripe instance for webhook handlers
-// ===========================================
-
-/**
- * Get raw Stripe instance for advanced usage (webhook handlers that need Stripe.Event types).
- * Prefer using getBillingGateway() for all other operations.
- */
-export function getStripeInstance(): Stripe {
-  return getStripe()
-}
-
-// ===========================================
-// DEPRECATED: Standalone function exports for backward compatibility
-// ===========================================
-
-const _defaultGateway = new StripeGateway()
-
-/** @deprecated Use getBillingGateway().createCheckoutSession() instead */
-export async function createCheckoutSession(params: CreateCheckoutParams) {
-  return _defaultGateway.createCheckoutSession(params)
-}
-
-/** @deprecated Use getBillingGateway().createPortalSession() instead */
-export async function createPortalSession(params: CreatePortalParams) {
-  return _defaultGateway.createPortalSession(params)
-}
-
-/** @deprecated Use getBillingGateway().verifyWebhookSignature() instead */
-export function verifyWebhookSignature(payload: string | Buffer, signatureOrHeaders: string | Record<string, string>) {
-  return _defaultGateway.verifyWebhookSignature(payload, signatureOrHeaders)
-}
-
-/** @deprecated Use getBillingGateway().getCustomer() instead */
-export async function getCustomer(customerId: string) {
-  return _defaultGateway.getCustomer(customerId)
-}
-
-/** @deprecated Use getBillingGateway().createCustomer() instead */
-export async function createCustomer(params: CreateCustomerParams) {
-  return _defaultGateway.createCustomer(params)
-}
-
-/** @deprecated Use getBillingGateway().cancelSubscriptionAtPeriodEnd() instead */
-export async function cancelSubscriptionAtPeriodEnd(subscriptionId: string) {
-  return _defaultGateway.cancelSubscriptionAtPeriodEnd(subscriptionId)
-}
-
-/** @deprecated Use getBillingGateway().cancelSubscriptionImmediately() instead */
-export async function cancelSubscriptionImmediately(subscriptionId: string) {
-  return _defaultGateway.cancelSubscriptionImmediately(subscriptionId)
-}
-
-/** @deprecated Use getBillingGateway().reactivateSubscription() instead */
-export async function reactivateSubscription(subscriptionId: string) {
-  return _defaultGateway.reactivateSubscription(subscriptionId)
-}
-
-/** @deprecated Use getBillingGateway().updateSubscriptionPlan() instead */
-export async function updateSubscriptionPlan(params: UpdateSubscriptionParams) {
-  return _defaultGateway.updateSubscriptionPlan(params)
-}

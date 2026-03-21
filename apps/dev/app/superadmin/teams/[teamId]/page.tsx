@@ -88,6 +88,9 @@ interface Subscription {
   cancelAtPeriodEnd: boolean;
   externalSubscriptionId: string | null;
   externalCustomerId: string | null;
+  paymentProvider: string | null;
+  providerName: string | null;
+  providerDashboardUrl: string | null;
   createdAt: string;
 }
 
@@ -494,21 +497,21 @@ function TeamDetailPage() {
                     </div>
                   </>
                 )}
-                {teamData.subscription.externalSubscriptionId && (
-                  <>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                      Stripe
-                    </h4>
-                    <a
-                      href={`https://dashboard.stripe.com/subscriptions/${teamData.subscription.externalSubscriptionId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                    >
-                      View in Stripe
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </>
+                {teamData.subscription.providerDashboardUrl && (
+                    <>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                        {teamData.subscription.providerName || 'Payment Provider'}
+                      </h4>
+                      <a
+                        href={teamData.subscription.providerDashboardUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                      >
+                        View in {teamData.subscription.providerName || 'Dashboard'}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </>
                 )}
               </div>
             </div>
