@@ -35,6 +35,9 @@ import { afterEntityCreate, afterEntityUpdate, afterEntityDelete } from '../../e
 import { extractPatternIds } from '../../blocks/pattern-resolver'
 import { isPatternReference } from '../../../types/pattern-reference'
 import { PatternUsageService } from '../../services/pattern-usage.service'
+import { SubscriptionService } from '../../services/subscription.service'
+import { UsageService } from '../../services/usage.service'
+import { BILLING_REGISTRY } from '@nextsparkjs/registries/billing-registry'
 import type { BlockInstance } from '../../../types/blocks'
 import type { PatternReference } from '../../../types/pattern-reference'
 
@@ -1081,6 +1084,30 @@ export async function handleGenericCreate(request: NextRequest): Promise<NextRes
       }
     })
 
+    // ── Billing quota check ──────────────────────────────────────────
+    // If the billing config has a limit mapping for "{entity}.create",
+    // verify the team hasn't exceeded its plan quota before inserting.
+    const createAction = `${entityConfig.slug}.create`
+    const limitSlug = BILLING_REGISTRY?.actionMappings?.limits?.[createAction]
+
+    if (limitSlug) {
+      const actionResult = await SubscriptionService.canPerformAction(
+        authResult.user!.id,
+        teamId,
+        createAction
+      )
+      if (!actionResult.allowed) {
+        const statusCode = actionResult.reason === 'quota_exceeded' ? 429 : 403
+        const response = createApiError(
+          actionResult.message || `Quota exceeded for ${entityConfig.slug}`,
+          statusCode,
+          undefined,
+          actionResult.reason === 'quota_exceeded' ? 'QUOTA_EXCEEDED' : 'FEATURE_NOT_IN_PLAN'
+        )
+        return addCorsHeaders(response, request)
+      }
+    }
+
     const insertQuery = `
       INSERT INTO "${tableName}" (${insertFields.join(', ')})
       VALUES (${placeholders.join(', ')}) RETURNING *
@@ -1090,6 +1117,20 @@ export async function handleGenericCreate(request: NextRequest): Promise<NextRes
 
     // Extract the generated ID from the insert result
     const createdEntityId = String(insertResult.rows[0]?.id)
+
+    // ── Usage tracking (fire-and-forget) ──────────────────────────────
+    // After successful insert, increment the usage counter for this entity.
+    if (limitSlug) {
+      UsageService.track({
+        teamId,
+        userId: authResult.user!.id,
+        limitSlug,
+        delta: 1,
+        action: createAction,
+        resourceType: entityConfig.slug,
+        resourceId: createdEntityId,
+      }).catch(() => {}) // Silent — never break entity creation
+    }
 
     // Get the created item with full data (include all fields for read operations)
     // Always include system fields (id, userId, teamId, createdAt, updatedAt)
@@ -1768,6 +1809,21 @@ export async function handleGenericDelete(request: NextRequest, { params }: { pa
     } catch (hookError) {
       console.error(`[generic-handler] Error in afterEntityDelete hook for ${entityConfig.slug}:`, hookError)
       // Don't fail the request if hooks fail
+    }
+
+    // ── Usage tracking: decrement on delete (fire-and-forget) ────────
+    const deleteAction = `${entityConfig.slug}.create`
+    const deleteLimitSlug = BILLING_REGISTRY?.actionMappings?.limits?.[deleteAction]
+    if (deleteLimitSlug) {
+      UsageService.track({
+        teamId,
+        userId: authResult.user!.id,
+        limitSlug: deleteLimitSlug,
+        delta: -1,
+        action: `${entityConfig.slug}.delete`,
+        resourceType: entityConfig.slug,
+        resourceId: id,
+      }).catch(() => {}) // Silent — never break entity deletion
     }
 
     const response = createApiResponse({ success: true, id })
