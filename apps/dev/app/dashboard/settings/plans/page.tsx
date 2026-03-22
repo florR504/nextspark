@@ -27,9 +27,14 @@ function PlansPage() {
       })
       const data = await res.json()
       if (data.success && data.data?.url) {
+        // New subscription — redirect to provider checkout
         window.location.href = data.data.url
+      } else if (data.success && data.data?.changed) {
+        // Plan changed via proration (existing subscription)
+        toast.success('Plan changed successfully')
+        window.location.reload()
       } else {
-        toast.error(data.error || 'Failed to create checkout session')
+        toast.error(data.error || 'Failed to process plan change')
       }
     } catch {
       toast.error('Failed to start checkout')

@@ -83,16 +83,44 @@ export const POST = withRateLimitTier(async (request: NextRequest) => {
     )
   }
 
-  // 5. Check existing subscription for customer ID
+  // 5. Check existing subscription
   try {
-    const subscription = await SubscriptionService.getActive(teamId)
+    const subscription = await SubscriptionService.getActive(teamId, authResult.user.id)
 
-    // Build URLs
+    // If already subscribed with an active provider subscription,
+    // use changePlan (immediate proration) instead of creating a new checkout.
+    // This prevents double-billing by updating the existing subscription in Stripe.
+    if (subscription?.externalSubscriptionId) {
+      const result = await SubscriptionService.changePlan(
+        teamId,
+        planSlug,
+        billingPeriod,
+        authResult.user.id
+      )
+
+      if (!result.success) {
+        return NextResponse.json(
+          { success: false, error: result.error },
+          { status: 400 }
+        )
+      }
+
+      // No redirect needed — plan changed immediately via API
+      return NextResponse.json({
+        success: true,
+        data: {
+          changed: true,
+          subscription: result.subscription,
+          warnings: result.downgradeWarnings,
+        }
+      })
+    }
+
+    // No existing provider subscription — create a new checkout session
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5173'
     const successUrl = `${appUrl}/dashboard/settings/billing?success=true`
     const cancelUrl = `${appUrl}/dashboard/settings/billing?canceled=true`
 
-    // Create checkout session via billing gateway
     const session = await getBillingGateway().createCheckoutSession({
       teamId,
       planSlug,
@@ -111,11 +139,11 @@ export const POST = withRateLimitTier(async (request: NextRequest) => {
       }
     })
   } catch (error) {
-    console.error('[checkout] Error creating checkout session:', error)
+    console.error('[checkout] Error:', error)
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to create checkout session'
+        error: error instanceof Error ? error.message : 'Failed to process checkout'
       },
       { status: 500 }
     )
