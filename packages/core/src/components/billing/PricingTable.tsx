@@ -5,6 +5,7 @@ import { useSubscription } from '../../hooks/useSubscription'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
+import { Skeleton } from '../ui/skeleton'
 import { Check, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '../../lib/utils'
@@ -15,7 +16,50 @@ interface PricingTableProps {
 }
 
 /**
+ * Skeleton card shown while subscription data loads.
+ * Prevents flash of "Seleccionar Plan" on all buttons before
+ * the current plan is known.
+ */
+function PricingCardSkeleton() {
+  return (
+    <Card className="relative flex flex-col">
+      <CardHeader>
+        <Skeleton className="h-7 w-28" />
+        <Skeleton className="h-4 w-48 mt-2" />
+        <Skeleton className="h-10 w-20 mt-4" />
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col">
+        <Skeleton className="h-4 w-24 mb-3" />
+        <div className="space-y-2.5 mb-6">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Skeleton className="h-4 w-4 rounded-full shrink-0" />
+              <Skeleton className="h-3.5 w-32" />
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-4 w-16 mb-3" />
+        <div className="space-y-2.5 mb-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex justify-between">
+              <Skeleton className="h-3.5 w-24" />
+              <Skeleton className="h-3.5 w-16" />
+            </div>
+          ))}
+        </div>
+        <div className="mt-auto">
+          <Skeleton className="h-10 w-full rounded-md" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+/**
  * PricingTable - Plan comparison table with features and limits
+ *
+ * Shows skeleton cards while subscription data loads to avoid
+ * a flash of incorrect button states (INP optimization).
  *
  * @example
  * ```tsx
@@ -24,12 +68,27 @@ interface PricingTableProps {
  */
 export function PricingTable({ onSelectPlan, className }: PricingTableProps) {
   const t = useTranslations('billing')
-  const { planSlug: currentPlanSlug } = useSubscription()
+  const { planSlug: currentPlanSlug, isReady } = useSubscription()
 
   // Filter plans to show only public ones (hide 'hidden' and 'invite_only')
   const visiblePlans = BILLING_REGISTRY.plans.filter(
     p => p.visibility === 'public' || p.visibility === undefined
   )
+
+  // Show skeletons until subscription is fully resolved (team loaded + query fetched).
+  // Prevents flash of incorrect button states on page load.
+  if (!isReady) {
+    return (
+      <div
+        className={cn('grid gap-6 md:grid-cols-2 lg:grid-cols-3', className)}
+        data-cy="pricing-table-loading"
+      >
+        {visiblePlans.map((plan) => (
+          <PricingCardSkeleton key={plan.slug} />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -44,8 +103,8 @@ export function PricingTable({ onSelectPlan, className }: PricingTableProps) {
           <Card
             key={plan.slug}
             className={cn(
-              'relative flex flex-col',
-              isCurrentPlan && 'border-primary border-2'
+              'relative flex flex-col transition-all duration-200',
+              isCurrentPlan && 'border-primary border-2 shadow-md'
             )}
             data-cy={`pricing-plan-${plan.slug}`}
           >

@@ -41,6 +41,8 @@ export interface SubscriptionContextValue {
   isPastDue: boolean
   isCanceled: boolean
   isLoading: boolean
+  /** True once subscription data has been fetched at least once (success or error) */
+  isReady: boolean
   error: Error | null
   refetch: () => void
   // NEW: Cached features and limits for FIX2
@@ -59,6 +61,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const {
     data: subscription,
     isLoading,
+    isFetched,
     error,
     refetch
   } = useQuery<SubscriptionWithPlan | null>({
@@ -135,6 +138,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     isPastDue: subscription?.status === 'past_due',
     isCanceled: subscription?.status === 'canceled',
     isLoading,
+    isReady: isFetched,
     error: error as Error | null,
     refetch: () => {
       refetch()
