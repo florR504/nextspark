@@ -24,6 +24,14 @@ const ROOT_TEMPLATE_FILES = [
   'i18n.ts',            // Required for next-intl configuration
 ];
 
+// Root files that contain project-specific customizations and should
+// only be created on first sync, never overwritten after that.
+// These are treated like custom template files in contents/themes/*/templates/.
+const PROTECTED_ROOT_FILES = [
+  'tsconfig.json',      // Projects add custom path aliases (e.g. @shared/*)
+  'next.config.mjs',    // Projects add custom webpack aliases, plugins, etc.
+];
+
 // Display limits for file listings
 const MAX_VERBOSE_FILES = 10;
 const MAX_SUMMARY_FILES = 5;
@@ -242,6 +250,16 @@ export async function syncAppCommand(options: SyncAppOptions): Promise<void> {
 
         if (existsSync(sourcePath)) {
           const isNew = !existsSync(targetPath);
+          const isProtected = PROTECTED_ROOT_FILES.includes(file);
+
+          // Protected files are only created, never overwritten
+          if (isProtected && !isNew) {
+            if (options.verbose) {
+              console.log(chalk.gray(`  ○ Protected (not overwritten): ${file}`));
+            }
+            continue;
+          }
+
           copyFile(sourcePath, targetPath);
 
           if (isNew) {
