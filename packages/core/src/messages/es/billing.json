@@ -159,6 +159,17 @@
     "failed": "Fallida"
   },
 
+  "changePlan": {
+    "title": "Cambiar de plan",
+    "from": "Plan actual",
+    "to": "Nuevo plan",
+    "upgradeDescription": "Se ajustará el cobro proporcionalmente al período actual",
+    "downgradeDescription": "Los recursos existentes permanecerán accesibles pero la creación de nuevos puede estar limitada",
+    "downgradeToFreeDescription": "Se cancelará tu suscripción y pasarás al plan gratuito",
+    "confirm": "Confirmar cambio",
+    "cancel": "Cancelar"
+  },
+
   "placeholder": {
     "notReal": "Esto es un placeholder - aún no es una función real",
     "description": "Esta función llegará pronto. Mejora tu plan para recibir notificación cuando esté disponible.",

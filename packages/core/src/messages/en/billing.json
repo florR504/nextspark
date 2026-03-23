@@ -159,6 +159,17 @@
     "failed": "Failed"
   },
 
+  "changePlan": {
+    "title": "Change Plan",
+    "from": "Current Plan",
+    "to": "New Plan",
+    "upgradeDescription": "Your billing will be adjusted proportionally for the current period",
+    "downgradeDescription": "Existing resources will remain accessible but new creation may be limited",
+    "downgradeToFreeDescription": "Your subscription will be canceled and you'll switch to the free plan",
+    "confirm": "Confirm Change",
+    "cancel": "Cancel"
+  },
+
   "placeholder": {
     "notReal": "This is a placeholder - not a real feature yet",
     "description": "This feature is coming soon. Upgrade your plan to be notified when it's available.",
