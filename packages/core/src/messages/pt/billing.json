@@ -159,6 +159,16 @@
     "failed": "Falhou"
   },
 
+  "quota": {
+    "limitReached": "Voce atingiu seu limite de {entity}",
+    "limitReachedDetail": "Seu plano atual nao permite mais {entity}. Faca upgrade para continuar crescendo.",
+    "featureNotIncluded": "Este recurso nao esta incluido no seu plano",
+    "featureNotIncludedDetail": "Este recurso nao esta disponivel no seu plano atual.",
+    "upgradePrompt": "Faca upgrade do seu plano para desbloquear mais capacidade.",
+    "viewPlans": "Ver Planos",
+    "goBack": "Voltar"
+  },
+
   "placeholder": {
     "notReal": "Isto e um placeholder - ainda nao e um recurso real",
     "description": "Este recurso chegara em breve. Faca upgrade do seu plano para receber notificacao quando estiver disponivel.",

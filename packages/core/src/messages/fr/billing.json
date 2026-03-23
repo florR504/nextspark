@@ -159,6 +159,16 @@
     "failed": "Echouee"
   },
 
+  "quota": {
+    "limitReached": "Vous avez atteint votre limite de {entity}",
+    "limitReachedDetail": "Votre plan actuel ne permet pas plus de {entity}. Mettez a niveau pour continuer a grandir.",
+    "featureNotIncluded": "Cette fonctionnalite n'est pas incluse dans votre plan",
+    "featureNotIncludedDetail": "Cette fonctionnalite n'est pas disponible dans votre plan actuel.",
+    "upgradePrompt": "Mettez a niveau votre plan pour debloquer plus de capacite.",
+    "viewPlans": "Voir les Plans",
+    "goBack": "Retour"
+  },
+
   "placeholder": {
     "notReal": "Ceci est un espace reserve - ce n'est pas encore une fonctionnalite reelle",
     "description": "Cette fonctionnalite arrivera bientot. Mettez a niveau votre plan pour etre notifie quand elle sera disponible.",

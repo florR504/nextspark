@@ -93,25 +93,28 @@ export function ConfirmPlanChangeModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center justify-center gap-4 py-4" data-cy="confirm-plan-change-plans">
-          <div className="flex flex-col items-center gap-1">
+        <div
+          className="flex items-center justify-center gap-3 py-4 px-2 rounded-lg bg-muted/50"
+          data-cy="confirm-plan-change-plans"
+        >
+          <div className="flex flex-col items-center gap-1.5 min-w-0">
             <span className="text-xs text-muted-foreground">{t('changePlan.from')}</span>
             <Badge variant="outline" data-cy="confirm-plan-change-current">
               {t(`plans.${currentPlanSlug}.name`)}
             </Badge>
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-medium tabular-nums text-muted-foreground">
               {currentPriceDisplay}{currentPlan?.price?.monthly ? t('perMonth') : ''}
             </span>
           </div>
 
-          <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />
+          <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
 
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center gap-1.5 min-w-0">
             <span className="text-xs text-muted-foreground">{t('changePlan.to')}</span>
             <Badge variant="default" data-cy="confirm-plan-change-target">
               {t(`plans.${targetPlanSlug}.name`)}
             </Badge>
-            <span className="text-sm font-medium">
+            <span className="text-sm font-bold tabular-nums">
               {targetPriceDisplay}{targetPlan?.price?.monthly ? t('perMonth') : ''}
             </span>
           </div>
@@ -129,9 +132,10 @@ export function ConfirmPlanChangeModal({
           <Button
             onClick={onConfirm}
             disabled={loading}
+            aria-busy={loading}
             data-cy="confirm-plan-change-confirm"
           >
-            {loading ? '...' : t('changePlan.confirm')}
+            {loading ? t('changePlan.confirming') : t('changePlan.confirm')}
           </Button>
         </DialogFooter>
       </DialogContent>

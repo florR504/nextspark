@@ -1,7 +1,7 @@
 /**
  * OAuth Integration Module
  *
- * Core OAuth infrastructure for Content Buddy
+ * Core OAuth infrastructure
  * Provides encryption, token refresh, and metadata management
  * for all OAuth providers (Facebook, Instagram, Google, etc.)
  *

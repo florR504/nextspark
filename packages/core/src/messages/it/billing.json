@@ -159,6 +159,16 @@
     "failed": "Fallita"
   },
 
+  "quota": {
+    "limitReached": "Hai raggiunto il limite di {entity}",
+    "limitReachedDetail": "Il tuo piano attuale non consente altri {entity}. Aggiorna il piano per continuare a crescere.",
+    "featureNotIncluded": "Questa funzionalita non e inclusa nel tuo piano",
+    "featureNotIncludedDetail": "Questa funzionalita non e disponibile nel tuo piano attuale.",
+    "upgradePrompt": "Aggiorna il tuo piano per sbloccare piu capacita.",
+    "viewPlans": "Vedi i Piani",
+    "goBack": "Indietro"
+  },
+
   "placeholder": {
     "notReal": "Questo e un placeholder - non e ancora una funzionalita reale",
     "description": "Questa funzionalita arrivera presto. Aggiorna il tuo piano per ricevere una notifica quando sara disponibile.",

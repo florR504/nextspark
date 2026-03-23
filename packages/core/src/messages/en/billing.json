@@ -170,6 +170,16 @@
     "cancel": "Cancel"
   },
 
+  "quota": {
+    "limitReached": "You've reached your {entity} limit",
+    "limitReachedDetail": "Your current plan doesn't allow more {entity}. Upgrade to keep growing.",
+    "featureNotIncluded": "This feature isn't in your plan",
+    "featureNotIncludedDetail": "This feature isn't available on your current plan.",
+    "upgradePrompt": "Upgrade your plan to unlock more capacity.",
+    "viewPlans": "View Plans",
+    "goBack": "Go Back"
+  },
+
   "placeholder": {
     "notReal": "This is a placeholder - not a real feature yet",
     "description": "This feature is coming soon. Upgrade your plan to be notified when it's available.",

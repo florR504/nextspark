@@ -159,6 +159,16 @@
     "failed": "Fehlgeschlagen"
   },
 
+  "quota": {
+    "limitReached": "Sie haben Ihr Limit fuer {entity} erreicht",
+    "limitReachedDetail": "Ihr aktueller Tarif erlaubt keine weiteren {entity}. Fuehren Sie ein Upgrade durch, um weiterzuwachsen.",
+    "featureNotIncluded": "Diese Funktion ist nicht in Ihrem Tarif enthalten",
+    "featureNotIncludedDetail": "Diese Funktion ist in Ihrem aktuellen Tarif nicht verfuegbar.",
+    "upgradePrompt": "Fuehren Sie ein Upgrade durch, um mehr Kapazitaet freizuschalten.",
+    "viewPlans": "Tarife ansehen",
+    "goBack": "Zurueck"
+  },
+
   "placeholder": {
     "notReal": "Dies ist ein Platzhalter - noch keine echte Funktion",
     "description": "Diese Funktion kommt bald. Fuehren Sie ein Upgrade durch, um benachrichtigt zu werden, wenn sie verfuegbar ist.",

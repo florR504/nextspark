@@ -133,9 +133,12 @@ export function PricingTable({ onSelectPlan, className }: PricingTableProps) {
               key={plan.slug}
               className={cn(
                 'relative flex flex-col transition-all duration-200',
-                isCurrentPlan && 'border-primary border-2 shadow-md'
+                isCurrentPlan
+                  ? 'border-primary border-2 shadow-md ring-1 ring-primary/20'
+                  : 'hover:border-border/80 hover:shadow-sm'
               )}
               data-cy={`pricing-plan-${plan.slug}`}
+              aria-current={isCurrentPlan ? 'true' : undefined}
             >
               {isCurrentPlan && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -155,15 +158,18 @@ export function PricingTable({ onSelectPlan, className }: PricingTableProps) {
                 <div className="mt-4" data-cy="pricing-plan-price">
                   {priceMonthly > 0 ? (
                     <>
-                      <span className="text-4xl font-bold">
+                      <span className="text-4xl font-bold tabular-nums">
                         ${priceMonthly.toFixed(0)}
                       </span>
-                      <span className="text-muted-foreground">/mo</span>
+                      <span className="text-muted-foreground text-sm">{t('perMonth')}</span>
                     </>
                   ) : plan.type === 'enterprise' ? (
                     <span className="text-2xl font-bold">{t('contactUs')}</span>
                   ) : (
-                    <span className="text-4xl font-bold">{t('plans.free.name')}</span>
+                    <>
+                      <span className="text-4xl font-bold tabular-nums">$0</span>
+                      <span className="text-muted-foreground text-sm">{t('perMonth')}</span>
+                    </>
                   )}
                 </div>
               </CardHeader>

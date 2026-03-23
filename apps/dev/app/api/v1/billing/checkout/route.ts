@@ -69,7 +69,7 @@ export const POST = withRateLimitTier(async (request: NextRequest) => {
 
   // 4. Permission check using MembershipService
   const membership = await MembershipService.get(authResult.user.id, teamId)
-  const actionResult = membership.canPerformAction('billing.checkout')
+  const actionResult = membership.canPerformAction('team.billing.manage')
 
   if (!actionResult.allowed) {
     return NextResponse.json(

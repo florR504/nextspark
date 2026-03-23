@@ -18,6 +18,7 @@ import { sel } from '@nextsparkjs/core/selectors'
 import { useTranslations } from 'next-intl'
 import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 import { useInvoices } from '@nextsparkjs/core/hooks/useInvoices'
+import { useSubscription } from '@nextsparkjs/core/hooks/useSubscription'
 import { InvoicesTable } from '@nextsparkjs/core/components/billing'
 import { usePermission } from '@nextsparkjs/core/lib/permissions/hooks'
 import type { Permission } from '@nextsparkjs/core/lib/permissions/types'
@@ -25,9 +26,11 @@ import type { Permission } from '@nextsparkjs/core/lib/permissions/types'
 function BillingPage() {
   const router = useRouter()
   const canAccessBilling = usePermission('settings.billing' as Permission)
+  const { planSlug, plan, isActive, isReady } = useSubscription()
   const [statusMessage, setStatusMessage] = useState('')
-  const [invoicesLimit, setInvoicesLimit] = useState(3) // Start with 3, load 10 more each time
+  const [invoicesLimit, setInvoicesLimit] = useState(3)
   const t = useTranslations('settings')
+  const tb = useTranslations('billing')
 
   // Fetch invoices for current team (must be before early return)
   const {
@@ -107,7 +110,9 @@ function BillingPage() {
                   {t('billing.currentPlan.description')}
                 </CardDescription>
               </div>
-              <Badge variant="secondary">{t('billing.currentPlan.free')}</Badge>
+              <Badge variant={isActive ? 'default' : 'secondary'}>
+                {isReady && planSlug ? tb(`plans.${planSlug}.name`) : t('billing.currentPlan.free')}
+              </Badge>
             </div>
           </CardHeader>
           <CardContent>
@@ -136,7 +141,7 @@ function BillingPage() {
                     {t('billing.upgrade.description')}
                   </p>
                 </div>
-                  <Link href="/pricing">
+                  <Link href="/dashboard/settings/plans">
                     <Button
                       onClick={handleUpgrade}
                       data-cy={sel('settings.billing.currentPlan.upgradeButton')}
@@ -263,7 +268,7 @@ function BillingPage() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <Link href="/pricing">
+                <Link href="/dashboard/settings/plans">
                   <Button variant="outline">
                     {t('billing.upgrade.viewPricing')}
                   </Button>

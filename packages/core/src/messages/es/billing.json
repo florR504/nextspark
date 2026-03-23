@@ -170,6 +170,16 @@
     "cancel": "Cancelar"
   },
 
+  "quota": {
+    "limitReached": "Llegaste al l\u00edmite de {entity}",
+    "limitReachedDetail": "Tu plan actual no permite crear m\u00e1s {entity}. Mejor\u00e1 tu plan para seguir creciendo.",
+    "featureNotIncluded": "Esta funci\u00f3n no est\u00e1 en tu plan",
+    "featureNotIncludedDetail": "Esta funcionalidad no est\u00e1 disponible en tu plan actual.",
+    "upgradePrompt": "Mejor\u00e1 tu plan para desbloquear m\u00e1s capacidad.",
+    "viewPlans": "Ver Planes",
+    "goBack": "Volver"
+  },
+
   "placeholder": {
     "notReal": "Esto es un placeholder - aún no es una función real",
     "description": "Esta función llegará pronto. Mejora tu plan para recibir notificación cuando esté disponible.",

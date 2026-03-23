@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateRequest, createAuthError } from '@nextsparkjs/core/lib/api/auth/dual-auth'
-import { MembershipService } from '@nextsparkjs/core/lib/services'
+import { SubscriptionService } from '@nextsparkjs/core/lib/services'
 import { z } from 'zod'
 import { withRateLimitTier } from '@nextsparkjs/core/lib/api/rate-limit'
 
@@ -69,11 +69,12 @@ export const POST = withRateLimitTier(async (request: NextRequest) => {
     )
   }
 
-  // 4. Check action permission using MembershipService
-  // Note: MembershipService.get() does NOT throw for non-members
-  // It returns TeamMembership with role: null
-  const membership = await MembershipService.get(authResult.user.id, teamId)
-  const result = membership.canPerformAction(action)
+  // 4. Check action using SubscriptionService (RBAC + features + quotas)
+  const result = await SubscriptionService.canPerformAction(
+    authResult.user.id,
+    teamId,
+    action
+  )
 
   return NextResponse.json({
     success: true,
