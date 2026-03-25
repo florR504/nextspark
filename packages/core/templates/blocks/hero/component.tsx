@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button } from '@/core/components/ui/button'
 import { cn } from '@/core/lib/utils'
-import { buildSectionClasses } from '@/core/types/blocks'
+import { buildSectionClasses, resolveMediaUrl } from '@/core/types/blocks'
 import type { HeroBlockProps } from './schema'
 
 /**
@@ -43,6 +43,9 @@ export function HeroBlock({
   // Handle legacy subtitle/description props for backward compatibility
   const displayContent = content || legacyProps.subtitle || legacyProps.description
 
+  // Resolve media ref to URL (handles both legacy string and new object format)
+  const backgroundImageUrl = resolveMediaUrl(backgroundImage)
+
   // Build section classes with background and custom className
   const sectionClasses = buildSectionClasses(
     cn(
@@ -55,11 +58,11 @@ export function HeroBlock({
   return (
     <section id={id} className={sectionClasses} data-cy="block-hero">
       {/* Background Image */}
-      {backgroundImage && (
+      {backgroundImageUrl && (
         <div
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage: `url(${backgroundImage})`,
+            backgroundImage: `url(${backgroundImageUrl})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}

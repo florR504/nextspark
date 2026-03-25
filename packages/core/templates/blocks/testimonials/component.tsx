@@ -2,7 +2,7 @@ import React from 'react'
 import { Quote } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/core/components/ui/avatar'
 import { cn } from '@/core/lib/utils'
-import { buildSectionClasses } from '@/core/types/blocks'
+import { buildSectionClasses, resolveMediaUrl } from '@/core/types/blocks'
 import type { TestimonialsBlockProps, TestimonialItem } from './schema'
 
 /**
@@ -77,7 +77,7 @@ export function TestimonialsBlock({
 
               <div className="flex items-center gap-3">
                 <Avatar>
-                  <AvatarImage src={item.avatar} alt={item.author} />
+                  <AvatarImage src={resolveMediaUrl(item.avatar)} alt={item.author} />
                   <AvatarFallback>
                     {item.author.split(' ').map((n: string) => n[0]).join('')}
                   </AvatarFallback>

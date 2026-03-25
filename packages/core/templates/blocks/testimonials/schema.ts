@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { baseBlockSchema } from '@/core/types/blocks'
+import { baseBlockSchema, mediaRefSchema } from '@/core/types/blocks'
 
 /**
  * Testimonial Item Schema
@@ -9,7 +9,7 @@ const testimonialItemSchema = z.object({
   quote: z.string().min(1, 'Quote is required').max(500),
   author: z.string().min(1, 'Author name is required').max(100),
   role: z.string().max(100).optional(),
-  avatar: z.string().url('Must be a valid URL').optional(),
+  avatar: mediaRefSchema.optional(),
 })
 
 export type TestimonialItem = z.infer<typeof testimonialItemSchema>

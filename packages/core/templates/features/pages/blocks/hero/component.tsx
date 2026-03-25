@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button } from '@nextsparkjs/core/components/ui/button'
 import { cn } from '@nextsparkjs/core/lib/utils'
-import { buildSectionClasses } from '@nextsparkjs/core/types/blocks'
+import { buildSectionClasses, resolveMediaUrl } from '@nextsparkjs/core/types/blocks'
 import { sel } from '../../lib/selectors'
 import type { HeroBlockProps } from './schema'
 
@@ -45,6 +45,9 @@ export function HeroBlock({
   // Handle legacy subtitle/description props for backward compatibility
   const displayContent = content || legacyProps.subtitle || legacyProps.description
 
+  // Resolve media ref to URL (handles both legacy string and new object format)
+  const backgroundImageUrl = resolveMediaUrl(backgroundImage)
+
   // Alignment classes mapping
   const alignmentClasses = {
     left: 'text-left items-start',
@@ -64,11 +67,11 @@ export function HeroBlock({
   return (
     <section id={id} className={sectionClasses} data-cy={sel('blocks.hero.container')}>
       {/* Background Image */}
-      {backgroundImage && (
+      {backgroundImageUrl && (
         <div
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage: `url(${backgroundImage})`,
+            backgroundImage: `url(${backgroundImageUrl})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}

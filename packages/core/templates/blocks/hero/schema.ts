@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import {
   baseBlockSchema,
+  mediaRefSchema,
   type BaseBlockProps,
 } from '@/core/types/blocks'
 
@@ -16,7 +17,7 @@ import {
  */
 export const heroSpecificSchema = z.object({
   // Hero-specific design fields
-  backgroundImage: z.string().url('Must be a valid URL').optional(),
+  backgroundImage: mediaRefSchema.optional(),
   textColor: z.enum(['light', 'dark']).default('light'),
 })
 

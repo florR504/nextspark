@@ -8,6 +8,42 @@
 import { z } from 'zod'
 
 // ============================================================================
+// MEDIA REFERENCE - For image/media fields in blocks
+// ============================================================================
+
+/**
+ * Media Reference Schema
+ *
+ * Blocks can store media references in two formats:
+ * - Legacy: plain URL string (backward compatible)
+ * - New: object with mediaId + url (enables future URL re-resolution)
+ *
+ * Use `resolveMediaUrl()` in components to safely extract the URL from either format.
+ */
+export const mediaRefObjectSchema = z.object({
+  mediaId: z.string(),
+  url: z.string(),
+})
+
+export const mediaRefSchema = z.union([
+  z.string(),
+  mediaRefObjectSchema,
+])
+
+export type MediaRef = z.infer<typeof mediaRefSchema>
+export type MediaRefObject = z.infer<typeof mediaRefObjectSchema>
+
+/**
+ * Resolve a MediaRef value to a plain URL string.
+ * Handles both legacy string URLs and new { mediaId, url } objects.
+ */
+export function resolveMediaUrl(ref: MediaRef | null | undefined): string | undefined {
+  if (!ref) return undefined
+  if (typeof ref === 'string') return ref || undefined
+  return ref.url || undefined
+}
+
+// ============================================================================
 // BASE SCHEMAS - Common fields for all blocks (3-tab structure)
 // ============================================================================
 

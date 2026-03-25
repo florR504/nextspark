@@ -6,6 +6,20 @@
  */
 import { z } from 'zod';
 /**
+ * Media Reference Schema - object format { mediaId, url }
+ */
+export declare const mediaRefObjectSchema: any;
+/**
+ * Media Reference Schema - union of string URL | { mediaId, url }
+ */
+export declare const mediaRefSchema: any;
+export type MediaRef = z.infer<typeof mediaRefSchema>;
+export type MediaRefObject = z.infer<typeof mediaRefObjectSchema>;
+/**
+ * Resolve a MediaRef value to a plain URL string.
+ */
+export declare function resolveMediaUrl(ref: MediaRef | null | undefined): string | undefined;
+/**
  * CTA (Call-to-Action) Schema
  * Used for buttons/links in Content tab
  */
@@ -96,7 +110,7 @@ export declare function createBlockFieldDefinitions(blockSpecificFields: FieldDe
 /**
  * Field types supported by the dynamic form generator
  */
-export type FieldType = 'text' | 'textarea' | 'url' | 'email' | 'number' | 'color' | 'image' | 'select' | 'checkbox' | 'radio' | 'rich-text' | 'array' | 'date' | 'time' | 'datetime';
+export type FieldType = 'text' | 'textarea' | 'url' | 'email' | 'number' | 'color' | 'image' | 'media-library' | 'select' | 'checkbox' | 'radio' | 'rich-text' | 'array' | 'date' | 'time' | 'datetime' | 'relationship';
 /**
  * Field definition for dynamic form generation
  * Describes a single configurable property of a block

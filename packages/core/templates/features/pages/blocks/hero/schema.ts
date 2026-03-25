@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import {
   baseBlockSchema,
+  mediaRefSchema,
   type BaseBlockProps,
 } from '@nextsparkjs/core/types/blocks'
 
@@ -17,7 +18,7 @@ import {
  */
 export const heroSpecificSchema = z.object({
   // Hero-specific design fields
-  backgroundImage: z.string().url('Must be a valid URL').optional(),
+  backgroundImage: mediaRefSchema.optional(),
   textColor: z.enum(['light', 'dark']).default('light'),
   alignment: z.enum(['left', 'center', 'right']).default('center'),
 })

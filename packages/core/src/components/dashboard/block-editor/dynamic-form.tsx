@@ -27,7 +27,8 @@ import { Button } from '../../ui/button'
 import { format } from 'date-fns'
 import { ArrayField } from './array-field'
 import { fetchWithTeam } from '../../../lib/api/entities'
-import type { FieldDefinition } from '../../../types/blocks'
+import type { FieldDefinition, MediaRef } from '../../../types/blocks'
+import { resolveMediaUrl } from '../../../types/blocks'
 import type { Media } from '../../../lib/media/types'
 
 interface DynamicFormProps {
@@ -101,35 +102,38 @@ function organizeFields(fields: FieldDefinition[]): {
 
 /**
  * MediaLibraryField - Opens the Media Library modal for image selection
- * Stores the URL string (not media ID) for backward compatibility with block schemas
+ * Stores { mediaId, url } object. Reads both legacy string URLs and new objects.
  */
 function MediaLibraryField({
   value,
   onChange,
   fieldName,
 }: {
-  value: string
-  onChange: (url: string) => void
+  value: MediaRef | ''
+  onChange: (ref: MediaRef | '') => void
   fieldName: string
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const t = useTranslations('admin.blockEditor.form')
 
+  // Resolve URL from either format for display
+  const displayUrl = resolveMediaUrl(value || undefined) || ''
+
   const handleSelect = (media: Media | Media[]) => {
     if (Array.isArray(media)) return
-    onChange(media.url)
+    onChange({ mediaId: media.id, url: media.url })
     setIsOpen(false)
   }
 
   return (
     <>
-      {value ? (
+      {displayUrl ? (
         <div
           className="relative group rounded-md overflow-hidden"
           data-cy={sel('blockEditor.blockPropertiesPanel.form.mediaField.preview', { name: fieldName })}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt="" className="w-full h-40 object-cover" />
+          <img src={displayUrl} alt="" className="w-full h-40 object-cover" />
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
             <Button
               type="button"
@@ -497,8 +501,8 @@ export function DynamicForm({ fieldDefinitions, values, onChange }: DynamicFormP
       case 'media-library':
         return (
           <MediaLibraryField
-            value={String(value || '')}
-            onChange={(url) => handleFieldChange(field.name, url)}
+            value={(value as MediaRef) || ''}
+            onChange={(ref) => handleFieldChange(field.name, ref || undefined)}
             fieldName={field.name}
           />
         )
