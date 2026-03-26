@@ -60,11 +60,12 @@ export function EntityFieldsSidebar({
 
   // Fetch first taxonomy type (usually 'post_category')
   const firstTaxonomy = taxonomyTypes[0]
-  const taxonomyApiPath = firstTaxonomy?.type?.replace('_', '-') + 's' // post_category -> post-categories
+  const taxonomyApiPath = firstTaxonomy?.type ? firstTaxonomy.type.replace('_', '-') + 's' : undefined // post_category -> post-categories
 
   const { data: taxonomyData, isLoading: taxonomyLoading } = useQuery({
     queryKey: ['taxonomies', taxonomyApiPath],
     queryFn: async () => {
+      if (!taxonomyApiPath) return { data: [] }
       const response = await fetch(`/api/v1/${taxonomyApiPath}`)
       if (!response.ok) return { data: [] }
       return response.json()
@@ -111,6 +112,7 @@ export function EntityFieldsSidebar({
         <div key={fieldName} className="space-y-2">
           <Label htmlFor={fieldName}>{fieldLabel}</Label>
           <SimpleRelationSelect
+            id={fieldName}
             entityType={fieldConfig.relation.entity}
             titleField={fieldConfig.relation.titleField}
             value={value || undefined}

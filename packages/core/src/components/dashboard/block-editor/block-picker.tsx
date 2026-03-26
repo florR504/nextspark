@@ -189,6 +189,8 @@ export function BlockPicker({
                 data-cy={sel('blockEditor.blockPicker.searchIcon')}
               />
               <Input
+                id="block-search"
+                name="block-search"
                 type="text"
                 placeholder={t('sidebar.search.placeholder')}
                 value={search}

@@ -82,12 +82,13 @@ export function ConfigPanel({
   const taxonomyTypes = entityConfig.taxonomies?.types || []
   const taxonomiesEnabled = entityConfig.taxonomies?.enabled && taxonomyTypes.length > 0
   const firstTaxonomy = taxonomyTypes[0]
-  const taxonomyApiPath = firstTaxonomy?.type?.replace('_', '-') + 's'
+  const taxonomyApiPath = firstTaxonomy?.type ? firstTaxonomy.type.replace('_', '-') + 's' : undefined
 
   // Fetch taxonomies
   const { data: taxonomyData, isLoading: taxonomyLoading } = useQuery({
     queryKey: ['taxonomies', taxonomyApiPath],
     queryFn: async () => {
+      if (!taxonomyApiPath) return { data: [] }
       const response = await fetch(`/api/v1/${taxonomyApiPath}`)
       if (!response.ok) return { data: [] }
       return response.json()
@@ -142,6 +143,7 @@ export function ConfigPanel({
         <div key={fieldName} className="space-y-2">
           <Label htmlFor={fieldName}>{fieldLabel}</Label>
           <SimpleRelationSelect
+            id={fieldName}
             entityType={fieldConfig.relation.entity}
             titleField={fieldConfig.relation.titleField}
             value={value || undefined}

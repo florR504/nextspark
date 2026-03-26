@@ -54,6 +54,8 @@ export interface SimpleRelationSelectProps {
   limit?: number
   /** Query filter params appended to the API call (e.g., { type: 'generic' }) */
   filter?: Record<string, string>
+  /** HTML id for the trigger button (enables label[for] association) */
+  id?: string
 }
 
 export function SimpleRelationSelect({
@@ -72,6 +74,7 @@ export function SimpleRelationSelect({
   teamId,
   limit = 20,
   filter,
+  id,
 }: SimpleRelationSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [options, setOptions] = React.useState<SimpleEntityOption[]>([])
@@ -532,6 +535,7 @@ export function SimpleRelationSelect({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           role="combobox"
           aria-expanded={open}

@@ -293,6 +293,7 @@ function RelationshipField({
       onValueChange={(v) => onChange(v)}
     >
       <SelectTrigger
+        id={field.name}
         data-cy={sel('blockEditor.blockPropertiesPanel.form.field', { name: field.name })}
       >
         <SelectValue placeholder={field.placeholder || t('selectEntity', { entity: field.targetEntity })} />

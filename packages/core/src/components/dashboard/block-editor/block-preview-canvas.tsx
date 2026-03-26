@@ -69,7 +69,7 @@ export function BlockPreviewCanvas({
     <div className="space-y-0" data-cy={sel('blockEditor.previewCanvas.container')}>
       {blocks.map((block, index) => (
         <SelectableBlockPreview
-          key={block.id}
+          key={block.id || `block-${index}`}
           block={block}
           isSelected={selectedBlockId === block.id}
           isHovered={hoveredBlockId === block.id}

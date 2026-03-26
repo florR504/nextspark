@@ -79,7 +79,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       // API returns { data: { subscription: {...} } }
       return data.data?.subscription ?? data.data
     },
-    enabled: !!team,
+    enabled: !!team && BILLING_REGISTRY.plans.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false
   })

@@ -514,6 +514,8 @@ export function BuilderEditorView({ entitySlug, entityConfig, id, mode }: Builde
             {/* Inline Title/Slug Editing - Borderless design */}
             <div className="flex flex-col justify-center" data-cy={sel('blockEditor.header.titleWrapper')}>
               <Input
+                id="builder-title"
+                name="builder-title"
                 ref={titleInputRef}
                 value={title}
                 onChange={(e) => {
@@ -542,6 +544,8 @@ export function BuilderEditorView({ entitySlug, entityConfig, id, mode }: Builde
                 >
                   <span className={cn("opacity-50", validationErrors.slug && "opacity-100")} data-cy={sel('blockEditor.header.slugPrefix')}>/</span>
                   <Input
+                    id="builder-slug"
+                    name="builder-slug"
                     value={slug}
                     onChange={(e) => {
                       const newSlug = e.target.value
