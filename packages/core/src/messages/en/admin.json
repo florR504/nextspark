@@ -275,8 +275,23 @@
       "tabs": {
         "content": "Content",
         "design": "Design",
-        "advanced": "Advanced"
-      }
+        "advanced": "Advanced",
+        "noContentFields": "No content fields",
+        "noDesignFields": "No design fields",
+        "noAdvancedFields": "No advanced fields"
+      },
+      "pattern": {
+        "title": "Pattern Reference",
+        "locked": {
+          "title": "Locked Block",
+          "description": "This is a pattern reference. Edit the pattern directly to make changes."
+        },
+        "actions": {
+          "edit": "Edit pattern",
+          "remove": "Unlink pattern"
+        }
+      },
+      "noFields": "This block has no configurable fields"
     },
     "config": {
       "entityFields": "Entity Fields",

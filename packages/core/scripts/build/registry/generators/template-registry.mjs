@@ -57,9 +57,10 @@ export function generateTemplateRegistry(templates, config) {
         templatePath = templatePath.slice(0, -3)
       }
 
-      // Skip import for metadata-only templates (PROTECTED_RENDER)
-      if (!canOverrideComponent(appPath)) {
-        return `// ${safeName} skipped - PROTECTED_RENDER (metadata-only)`
+      // Skip import for metadata-only templates (PROTECTED_RENDER or standalone .meta.ts)
+      const isMetaOnly = highestPriorityTemplate.fileName?.endsWith('.meta.ts')
+      if (!canOverrideComponent(appPath) || isMetaOnly) {
+        return `// ${safeName} skipped - metadata-only${isMetaOnly ? ' (standalone .meta.ts)' : ' (PROTECTED_RENDER)'}`
       }
 
       return `import ${safeName} from '${templatePath}'`
@@ -72,8 +73,9 @@ export function generateTemplateRegistry(templates, config) {
       const highestPriorityTemplate = pathTemplates[0]
       const safeName = `Template_${index}`
 
-      // For metadata-only templates (PROTECTED_RENDER), don't reference component
-      const componentRef = canOverrideComponent(appPath) ? safeName : 'null'
+      // For metadata-only templates (PROTECTED_RENDER or standalone .meta.ts), don't reference component
+      const isMetaOnly = highestPriorityTemplate.fileName?.endsWith('.meta.ts')
+      const componentRef = (!canOverrideComponent(appPath) || isMetaOnly) ? 'null' : safeName
 
       return `  '${appPath}': {
     appPath: '${appPath}',

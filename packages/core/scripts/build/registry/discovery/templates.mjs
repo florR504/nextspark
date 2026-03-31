@@ -6,7 +6,7 @@
  * @module core/scripts/build/registry/discovery/templates
  */
 
-import { readdir, stat, readFile } from 'fs/promises'
+import { readdir, stat, readFile, access } from 'fs/promises'
 import { join } from 'path'
 
 import { CONFIG as DEFAULT_CONFIG } from '../config.mjs'
@@ -100,6 +100,42 @@ export async function discoverThemeTemplates(templatesPath, themeName, relativeP
           continue
         }
 
+        // Handle .meta.ts files: skip if companion .tsx exists (handled there),
+        // otherwise register as standalone metadata-only template
+        if (entry.name.endsWith('.meta.ts')) {
+          const companionTsx = entry.name.replace('.meta.ts', '.tsx')
+          const companionTs = entry.name.replace('.meta.ts', '.ts')
+          const hasTsxCompanion = entries.some(e => e.name === companionTsx)
+          const hasTsCompanion = entries.some(e => e.name === companionTs && !e.name.endsWith('.meta.ts'))
+
+          if (hasTsxCompanion || hasTsCompanion) {
+            verbose(`Skipping meta file (companion exists): ${currentRelativePath}`)
+            continue
+          }
+
+          // Standalone .meta.ts — register as metadata-only template
+          const baseFileName = entry.name.replace('.meta.ts', '.tsx')
+          const appPath = relativePath ? `app/${relativePath}/${baseFileName}` : `app/${baseFileName}`
+          const templatePath = `@/contents/themes/${themeName}/templates/${currentRelativePath}`
+          const templateMetadata = await extractTemplateMetadata(currentPath)
+
+          if (templateMetadata) {
+            verbose(`Standalone metadata template: ${appPath} (from ${currentRelativePath})`)
+            templates.push({
+              name: `${relativePath || 'root'}/${entry.name.replace('.meta.ts', '')}`.replace(/^\//, ''),
+              themeName,
+              templateType: entry.name.replace('.meta.ts', ''),
+              fileName: entry.name,
+              relativePath: currentRelativePath,
+              appPath,
+              templatePath,
+              priority: calculateTemplatePriority(themeName, relativePath, entry.name.replace('.meta.ts', '')),
+              metadata: templateMetadata
+            })
+          }
+          continue
+        }
+
         // Found a template file
         const templateType = entry.name.replace(/\.(tsx|ts)$/, '')
         const appPath = relativePath ? `app/${relativePath}/${entry.name}` : `app/${entry.name}`
@@ -141,10 +177,28 @@ export async function discoverThemeTemplates(templatesPath, themeName, relativeP
           // Ignore read errors for non-critical validation
         }
 
-        // Extract metadata from template file if it exists
-        const templateMetadata = await extractTemplateMetadata(currentPath)
-        if (templateMetadata) {
-          verbose(`Metadata extracted from ${templatePath}`)
+        // Extract metadata: check for companion .meta.ts file first, then inline export
+        let templateMetadata = null
+
+        // Check for companion .meta.ts file (e.g., layout.meta.ts for layout.tsx)
+        const metaFileName = entry.name.replace(/\.(tsx|ts)$/, '.meta.ts')
+        const metaFilePath = join(templatesPath, metaFileName)
+        try {
+          await access(metaFilePath)
+          templateMetadata = await extractTemplateMetadata(metaFilePath)
+          if (templateMetadata) {
+            verbose(`Metadata extracted from companion .meta.ts: ${metaFileName}`)
+          }
+        } catch {
+          // No companion .meta.ts file - fall through to inline extraction
+        }
+
+        // Fall back to inline metadata export from the template file itself
+        if (!templateMetadata) {
+          templateMetadata = await extractTemplateMetadata(currentPath)
+          if (templateMetadata) {
+            verbose(`Metadata extracted from ${templatePath}`)
+          }
         }
 
         templates.push({

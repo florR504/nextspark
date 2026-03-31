@@ -275,8 +275,23 @@
       "tabs": {
         "content": "Contenido",
         "design": "Diseño",
-        "advanced": "Avanzado"
-      }
+        "advanced": "Avanzado",
+        "noContentFields": "No hay campos de contenido",
+        "noDesignFields": "No hay campos de diseno",
+        "noAdvancedFields": "No hay campos avanzados"
+      },
+      "pattern": {
+        "title": "Referencia a Pattern",
+        "locked": {
+          "title": "Bloque bloqueado",
+          "description": "Este bloque es una referencia a un pattern. Edita el pattern directamente para hacer cambios."
+        },
+        "actions": {
+          "edit": "Editar pattern",
+          "remove": "Desvincular pattern"
+        }
+      },
+      "noFields": "Este bloque no tiene campos configurables"
     },
     "config": {
       "entityFields": "Campos de Entidad",
