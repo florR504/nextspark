@@ -50,7 +50,7 @@ export function useMediaList(options: MediaListOptions = {}) {
 /**
  * Fetch a single media item by ID
  */
-export function useMediaItem(id: string | null, publicMedia: boolean = false) {
+export function useMediaItem(id: string | null) {
   const { user } = useAuth()
 
   return useQuery<Media>({
@@ -65,7 +65,7 @@ export function useMediaItem(id: string | null, publicMedia: boolean = false) {
       const json = await res.json()
       return json.data
     },
-    enabled: !!id && ( publicMedia || !!user),
+    enabled: !!user && !!id,
   })
 }
 
