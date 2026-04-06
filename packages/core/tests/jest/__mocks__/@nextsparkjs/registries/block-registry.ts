@@ -6,6 +6,8 @@ export const BLOCK_REGISTRY: Record<string, any> = {}
 
 export const BLOCK_COMPONENTS: Record<string, any> = {}
 
+export const BLOCK_COMPONENTS_SSR: Record<string, any> = {}
+
 export const BLOCK_METADATA = {
   generated: new Date().toISOString(),
   totalBlocks: 0,

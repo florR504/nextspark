@@ -2,29 +2,20 @@
  * PageRenderer Component
  *
  * Renders pages from the Page Builder by iterating over blocks
- * and dynamically loading block components from the registry.
+ * and directly loading block components from the SSR registry.
+ *
+ * Uses direct imports (BLOCK_COMPONENTS_SSR) instead of React.lazy
+ * so that all HTML is visible in the initial server response without JS.
+ * React.lazy puts content inside hidden <template> tags that require
+ * client-side JS to reveal — breaking no-JS rendering and hurting SEO.
  *
  * @module core/components/public/pageBuilder
  */
 
-import { Suspense } from 'react'
 import type { BlockInstance } from '../../../types/blocks'
-import { getBlockComponent, normalizeBlockProps } from '../../../lib/blocks/loader'
+import { getBlockComponentSSR, normalizeBlockProps } from '../../../lib/blocks/loader'
 
-// Loading skeleton for blocks
-function BlockSkeleton() {
-  return (
-    <div className="w-full py-12 px-4 animate-pulse">
-      <div className="max-w-7xl mx-auto">
-        <div className="h-8 bg-muted rounded w-3/4 mb-4" />
-        <div className="h-4 bg-muted rounded w-full mb-2" />
-        <div className="h-4 bg-muted rounded w-5/6" />
-      </div>
-    </div>
-  )
-}
-
-// Error boundary for individual blocks
+// Error display for missing blocks
 function BlockError({ blockSlug }: { blockSlug: string }) {
   return (
     <div className="w-full py-12 px-4 bg-destructive/10 border border-destructive/20 rounded">
@@ -40,9 +31,9 @@ function BlockError({ blockSlug }: { blockSlug: string }) {
   )
 }
 
-// Individual block renderer with error boundary
+// Individual block renderer — no Suspense, direct component rendering
 function BlockRenderer({ block }: { block: BlockInstance }) {
-  const BlockComponent = getBlockComponent(block.blockSlug)
+  const BlockComponent = getBlockComponentSSR(block.blockSlug)
 
   if (!BlockComponent) {
     console.warn(`Block component not found for slug: ${block.blockSlug}`)
@@ -52,11 +43,7 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
   // Normalize props to convert dot-notation to nested objects
   const normalizedProps = normalizeBlockProps(block.props)
 
-  return (
-    <Suspense fallback={<BlockSkeleton />}>
-      <BlockComponent {...normalizedProps} />
-    </Suspense>
-  )
+  return <BlockComponent {...normalizedProps} />
 }
 
 export interface PageRendererProps {

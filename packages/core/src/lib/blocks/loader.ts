@@ -8,7 +8,7 @@
  */
 
 import { ComponentType } from 'react'
-import { BLOCK_COMPONENTS } from '@nextsparkjs/registries/block-registry'
+import { BLOCK_COMPONENTS, BLOCK_COMPONENTS_SSR } from '@nextsparkjs/registries/block-registry'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BlockComponent = ComponentType<any>
@@ -31,6 +31,21 @@ export function getBlockComponents(): Record<string, BlockComponent> {
  */
 export function getBlockComponent(slug: string): BlockComponent | undefined {
   return BLOCK_COMPONENTS[slug]
+}
+
+/**
+ * Get all SSR block components (direct imports, no React.lazy)
+ * Use for public page rendering where no-JS SSR is required
+ */
+export function getBlockComponentsSSR(): Record<string, BlockComponent> {
+  return BLOCK_COMPONENTS_SSR
+}
+
+/**
+ * Get a specific SSR block component by slug (direct import, no React.lazy)
+ */
+export function getBlockComponentSSR(slug: string): BlockComponent | undefined {
+  return BLOCK_COMPONENTS_SSR[slug]
 }
 
 /**

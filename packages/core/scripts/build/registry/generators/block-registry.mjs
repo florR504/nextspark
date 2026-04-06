@@ -47,6 +47,13 @@ export const BLOCK_CATEGORIES: string[] = []
 
 export const BLOCK_COMPONENTS: Record<string, React.LazyExoticComponent<React.ComponentType<unknown>>> = {}
 
+/**
+ * Direct-imported block components for SSR rendering
+ * No React.lazy, no Suspense — HTML is fully visible without JS
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const BLOCK_COMPONENTS_SSR: Record<string, React.ComponentType<any>> = {}
+
 export const BLOCK_METADATA = {
   totalBlocks: 0,
   categories: [],
@@ -59,12 +66,17 @@ export const BLOCK_METADATA = {
 
   // Import field definitions and examples (if they exist)
   const imports = []
+  // Direct component imports for SSR (no React.lazy)
+  const ssrImports = []
 
   blocks.forEach(block => {
     const slugVar = block.slug.replace(/-/g, '_')
 
     // Always import field definitions
     imports.push(`import { fieldDefinitions as ${slugVar}_fields } from '${block.paths.fields}'`)
+
+    // Direct component import for SSR rendering
+    ssrImports.push(`import { default as ${slugVar}_component } from '${block.paths.component}'`)
 
     // Conditionally import examples if they exist
     if (block.hasExamples) {
@@ -73,6 +85,7 @@ export const BLOCK_METADATA = {
   })
 
   const fieldImports = imports.join('\n')
+  const ssrComponentImports = ssrImports.join('\n')
 
   const registryEntries = blocks.map(block => {
     const slugVar = block.slug.replace(/-/g, '_')
@@ -124,6 +137,9 @@ import type { BlockConfig, BlockCategory } from '${convertCorePath('@/core/types
 
 ${fieldImports}
 
+// Direct component imports for SSR (no React.lazy, no Suspense needed)
+${ssrComponentImports}
+
 export const BLOCK_REGISTRY: Record<string, BlockConfig> = {
 ${registryEntries}
 }
@@ -138,6 +154,19 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [${categories.map(c => `'${c}'`
 export const BLOCK_COMPONENTS: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
 ${blocks.map(block => {
     return `  '${block.slug}': React.lazy(() => import('${block.paths.component}').then(mod => ({ default: Object.values(mod)[0] as React.ComponentType<any> })))`
+  }).join(',\n')}
+}
+
+/**
+ * Direct-imported block components for SSR rendering
+ * No React.lazy, no Suspense — HTML is fully visible without JS.
+ * Use with SSRPageRenderer for public pages where SEO and no-JS rendering matter.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const BLOCK_COMPONENTS_SSR: Record<string, React.ComponentType<any>> = {
+${blocks.map(block => {
+    const slugVar = block.slug.replace(/-/g, '_')
+    return `  '${block.slug}': ${slugVar}_component`
   }).join(',\n')}
 }
 
