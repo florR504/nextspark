@@ -2,16 +2,17 @@
  * PageRenderer Component
  *
  * Renders pages from the Page Builder by iterating over blocks
- * and directly loading block components from the SSR registry.
+ * and loading block components from the SSR registry.
  *
- * Uses direct imports (BLOCK_COMPONENTS_SSR) instead of React.lazy
- * so that all HTML is visible in the initial server response without JS.
- * React.lazy puts content inside hidden <template> tags that require
- * client-side JS to reveal — breaking no-JS rendering and hurting SEO.
+ * Block components are loaded via next/dynamic (ssr: true) for per-block
+ * code splitting. Each block gets its own JS chunk — only blocks used on
+ * the page have their JS loaded by the browser. SSR renders full HTML
+ * so content is visible without client JS (SEO-safe).
  *
  * @module core/components/public/pageBuilder
  */
 
+import { Suspense } from 'react'
 import type { BlockInstance } from '../../../types/blocks'
 import { getBlockComponentSSR, normalizeBlockProps } from '../../../lib/blocks/loader'
 
@@ -31,7 +32,7 @@ function BlockError({ blockSlug }: { blockSlug: string }) {
   )
 }
 
-// Individual block renderer — no Suspense, direct component rendering
+// Individual block renderer with Suspense for next/dynamic code-split components
 function BlockRenderer({ block }: { block: BlockInstance }) {
   const BlockComponent = getBlockComponentSSR(block.blockSlug)
 
@@ -43,7 +44,11 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
   // Normalize props to convert dot-notation to nested objects
   const normalizedProps = normalizeBlockProps(block.props)
 
-  return <BlockComponent {...normalizedProps} />
+  return (
+    <Suspense>
+      <BlockComponent {...normalizedProps} />
+    </Suspense>
+  )
 }
 
 export interface PageRendererProps {

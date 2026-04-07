@@ -66,17 +66,12 @@ export const BLOCK_METADATA = {
 
   // Import field definitions and examples (if they exist)
   const imports = []
-  // Direct component imports for SSR (no React.lazy)
-  const ssrImports = []
 
   blocks.forEach(block => {
     const slugVar = block.slug.replace(/-/g, '_')
 
     // Always import field definitions
     imports.push(`import { fieldDefinitions as ${slugVar}_fields } from '${block.paths.fields}'`)
-
-    // Direct component import for SSR rendering
-    ssrImports.push(`import { default as ${slugVar}_component } from '${block.paths.component}'`)
 
     // Conditionally import examples if they exist
     if (block.hasExamples) {
@@ -85,7 +80,6 @@ export const BLOCK_METADATA = {
   })
 
   const fieldImports = imports.join('\n')
-  const ssrComponentImports = ssrImports.join('\n')
 
   const registryEntries = blocks.map(block => {
     const slugVar = block.slug.replace(/-/g, '_')
@@ -133,12 +127,10 @@ export const BLOCK_METADATA = {
  */
 
 import React from 'react'
+import dynamic from 'next/dynamic'
 import type { BlockConfig, BlockCategory } from '${convertCorePath('@/core/types', outputFilePath, config)}'
 
 ${fieldImports}
-
-// Direct component imports for SSR (no React.lazy, no Suspense needed)
-${ssrComponentImports}
 
 export const BLOCK_REGISTRY: Record<string, BlockConfig> = {
 ${registryEntries}
@@ -158,15 +150,14 @@ ${blocks.map(block => {
 }
 
 /**
- * Direct-imported block components for SSR rendering
- * No React.lazy, no Suspense — HTML is fully visible without JS.
- * Use with SSRPageRenderer for public pages where SEO and no-JS rendering matter.
+ * Code-split block components for SSR rendering via next/dynamic.
+ * Each block is a separate JS chunk — only blocks used on the page are loaded.
+ * SSR is enabled (default) so HTML is fully visible without client JS.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const BLOCK_COMPONENTS_SSR: Record<string, React.ComponentType<any>> = {
 ${blocks.map(block => {
-    const slugVar = block.slug.replace(/-/g, '_')
-    return `  '${block.slug}': ${slugVar}_component`
+    return `  '${block.slug}': dynamic(() => import('${block.paths.component}'), { ssr: true })`
   }).join(',\n')}
 }
 
