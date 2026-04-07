@@ -1,20 +1,25 @@
 /**
- * PageRenderer Component
+ * PageRenderer Component — Async Server Component with RSC Streaming
  *
- * Renders pages from the Page Builder by iterating over blocks
- * and loading block components from the SSR registry.
+ * Renders pages from the Page Builder using async dynamic imports
+ * per block, wrapped in Suspense boundaries for streaming SSR.
  *
- * Block components are loaded via next/dynamic (ssr: true) for per-block
- * code splitting. Each block gets its own JS chunk — only blocks used on
- * the page have their JS loaded by the browser. SSR renders full HTML
- * so content is visible without client JS (SEO-safe).
+ * How it works:
+ * 1. Each block is loaded via `loadBlockSSR(slug)` — an async import
+ * 2. React Server Components resolve the import on the server
+ * 3. Suspense boundaries let React stream HTML progressively
+ * 4. Client receives complete HTML (zero CLS, SEO-safe)
+ * 5. Only JS chunks for blocks actually on the page are sent to client
+ *
+ * This gives per-block code splitting WITHOUT the CLS issues of next/dynamic,
+ * because the server fully resolves each block before flushing the HTML.
  *
  * @module core/components/public/pageBuilder
  */
 
 import { Suspense } from 'react'
 import type { BlockInstance } from '../../../types/blocks'
-import { getBlockComponentSSR, normalizeBlockProps } from '../../../lib/blocks/loader'
+import { loadBlockSSR, normalizeBlockProps } from '../../../lib/blocks/loader'
 
 // Error display for missing blocks
 function BlockError({ blockSlug }: { blockSlug: string }) {
@@ -32,9 +37,12 @@ function BlockError({ blockSlug }: { blockSlug: string }) {
   )
 }
 
-// Individual block renderer with Suspense for next/dynamic code-split components
-function BlockRenderer({ block }: { block: BlockInstance }) {
-  const BlockComponent = getBlockComponentSSR(block.blockSlug)
+/**
+ * Async Server Component — resolves block import on the server,
+ * renders HTML, and streams it to the client via Suspense.
+ */
+async function BlockRenderer({ block }: { block: BlockInstance }) {
+  const BlockComponent = await loadBlockSSR(block.blockSlug)
 
   if (!BlockComponent) {
     console.warn(`Block component not found for slug: ${block.blockSlug}`)
@@ -44,11 +52,7 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
   // Normalize props to convert dot-notation to nested objects
   const normalizedProps = normalizeBlockProps(block.props)
 
-  return (
-    <Suspense>
-      <BlockComponent {...normalizedProps} />
-    </Suspense>
-  )
+  return <BlockComponent {...normalizedProps} />
 }
 
 export interface PageRendererProps {
@@ -87,7 +91,9 @@ export function PageRenderer({ page }: PageRendererProps) {
           data-block-id={block.id}
           data-block-slug={block.blockSlug}
         >
-          <BlockRenderer block={block} />
+          <Suspense>
+            <BlockRenderer block={block} />
+          </Suspense>
         </div>
       ))}
     </div>
