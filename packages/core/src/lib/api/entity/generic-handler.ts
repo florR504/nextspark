@@ -1214,6 +1214,20 @@ export async function handleGenericCreate(request: NextRequest): Promise<NextRes
 
   } catch (error) {
     console.error('Error in generic create handler:', error)
+
+    // PostgreSQL unique constraint violation → 409 Conflict
+    if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === '23505') {
+      const detail = 'detail' in error ? (error as { detail: string }).detail : undefined
+      const constraint = 'constraint' in error ? (error as { constraint: string }).constraint : undefined
+      const response = createApiError(
+        'A record with this value already exists',
+        409,
+        { constraint, detail },
+        'UNIQUE_CONSTRAINT_VIOLATION'
+      )
+      return addCorsHeaders(response, request)
+    }
+
     const response = createApiError('Internal server error', 500)
     return addCorsHeaders(response, request)
   }
@@ -1696,6 +1710,20 @@ export async function handleGenericUpdate(request: NextRequest, { params }: { pa
 
   } catch (error) {
     console.error('Error in generic update handler:', error)
+
+    // PostgreSQL unique constraint violation → 409 Conflict
+    if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === '23505') {
+      const detail = 'detail' in error ? (error as { detail: string }).detail : undefined
+      const constraint = 'constraint' in error ? (error as { constraint: string }).constraint : undefined
+      const response = createApiError(
+        'A record with this value already exists',
+        409,
+        { constraint, detail },
+        'UNIQUE_CONSTRAINT_VIOLATION'
+      )
+      return addCorsHeaders(response, request)
+    }
+
     const response = createApiError('Internal server error', 500)
     return addCorsHeaders(response, request)
   }
@@ -1831,6 +1859,20 @@ export async function handleGenericDelete(request: NextRequest, { params }: { pa
 
   } catch (error) {
     console.error('Error in generic delete handler:', error)
+
+    // PostgreSQL foreign key violation → 409 Conflict (entity is referenced by other records)
+    if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === '23503') {
+      const detail = 'detail' in error ? (error as { detail: string }).detail : undefined
+      const constraint = 'constraint' in error ? (error as { constraint: string }).constraint : undefined
+      const response = createApiError(
+        detail || 'Cannot delete: this record is referenced by other records',
+        409,
+        { constraint },
+        'FOREIGN_KEY_VIOLATION'
+      )
+      return addCorsHeaders(response, request)
+    }
+
     const response = createApiError('Internal server error', 500)
     return addCorsHeaders(response, request)
   }
