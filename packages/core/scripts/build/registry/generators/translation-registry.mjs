@@ -495,23 +495,71 @@ ${(() => {
 
   console.log(`[TranslationRegistry] PPR enabled — generating static exports for locale '${defaultLocale}'`)
 
+  // Collect entity translations for the default locale (theme entities)
+  const defaultLocaleEntityTranslations = entityTranslations.filter(
+    t => t.themeName === config.activeTheme && t.locale === defaultLocale
+  )
+
+  // Collect plugin entity translations for the default locale
+  // Only include plugin entities that are NOT already in the theme (plugin = fallback)
+  const themeEntityNames = new Set(defaultLocaleEntityTranslations.map(t => t.entityName))
+  const defaultLocalePluginEntityTranslations = pluginEntityTranslations.filter(
+    t => t.locale === defaultLocale && !themeEntityNames.has(t.entityName)
+  )
+
+  const allEntityTranslations = [...defaultLocaleEntityTranslations, ...defaultLocalePluginEntityTranslations]
+
+  // Generate import statements for entity translations
+  const entityImports = allEntityTranslations.map((t, i) => {
+    const varName = `_entity${i}Messages`
+    return `import ${varName} from '${t.filePath}'`
+  }).join('\n')
+
+  // Generate the entity messages object entries
+  const entityEntries = allEntityTranslations.map((t, i) => {
+    const varName = `_entity${i}Messages`
+    return `  '${t.entityName}': ${varName}`
+  }).join(',\n')
+
+  const hasEntities = allEntityTranslations.length > 0
+  const entityImportsBlock = hasEntities ? `\n// Entity and plugin entity translations (default locale)\n${entityImports}\n` : ''
+  const entityMergeBlock = hasEntities
+    ? `
+const _entityMessages: Record<string, unknown> = {
+${entityEntries}
+}
+
+export const STATIC_MESSAGES: Record<string, unknown> = _deepMerge(
+  _deepMerge(
+    _coreMessages as unknown as Record<string, unknown>,
+    (_themeMessages as { default?: Record<string, unknown> }).default ?? _themeMessages as unknown as Record<string, unknown>
+  ),
+  _entityMessages
+)`
+    : `
+export const STATIC_MESSAGES: Record<string, unknown> = _deepMerge(
+  _coreMessages as unknown as Record<string, unknown>,
+  (_themeMessages as { default?: Record<string, unknown> }).default ?? _themeMessages as unknown as Record<string, unknown>
+)`
+
+  if (hasEntities) {
+    console.log(`[TranslationRegistry] PPR static messages include ${allEntityTranslations.length} entity translations`)
+  }
+
   return `/**
  * PPR: Static messages for the default locale (pre-merged at build time)
  *
  * Used by the root layout's StaticIntlProvider to render content
  * in the PPR static shell without accessing cookies/headers.
- * Core messages are deep-merged with theme messages.
+ * Core messages are deep-merged with theme + entity + plugin messages.
  */
 import { deepMergeMessages as _deepMerge } from '@nextsparkjs/core/lib/translations/registry'
 import _coreMessages from '@nextsparkjs/core/messages/${defaultLocale}/index.js'
 import _themeMessages from '${defaultThemeTranslation.filePath}'
-
+${entityImportsBlock}
 export const DEFAULT_LOCALE = '${defaultLocale}' as const
 export const DEFAULT_THEME_MODE = '${defaultThemeMode}' as const
-export const STATIC_MESSAGES: Record<string, unknown> = _deepMerge(
-  _coreMessages as unknown as Record<string, unknown>,
-  (_themeMessages as { default?: Record<string, unknown> }).default ?? _themeMessages as unknown as Record<string, unknown>
-)`
+${entityMergeBlock}`
 })()}
 `
 }
