@@ -32,6 +32,8 @@ import {
   handleCorsPreflightRequest
 } from '../helpers'
 import { afterEntityCreate, afterEntityUpdate, afterEntityDelete } from '../../entities/entity-hooks'
+import { checkPermission } from '../../permissions/check'
+import type { Permission } from '../../permissions/types'
 import { extractPatternIds } from '../../blocks/pattern-resolver'
 import { isPatternReference } from '../../../types/pattern-reference'
 import { PatternUsageService } from '../../services/pattern-usage.service'
@@ -329,6 +331,40 @@ function isBuilderRequest(request: NextRequest): boolean {
  * Validate that user is a member of the specified team
  * Returns true if user is a member, false otherwise
  */
+/**
+ * Check entity-level permissions for session-authenticated users.
+ * API key auth uses scopes; session auth needs role-based permission checks.
+ * Returns null if allowed, or a NextResponse with 403 if denied.
+ */
+async function checkSessionPermission(
+  authResult: DualAuthResult,
+  entitySlug: string,
+  action: string,
+  teamId: string,
+  request: NextRequest
+): Promise<NextResponse | null> {
+  // Only check for session auth — API key auth uses scopes
+  if (authResult.type !== 'session' || !authResult.user?.id) return null
+
+  const permission = `${entitySlug}.${action}` as Permission
+  try {
+    const allowed = await checkPermission(authResult.user.id, teamId, permission)
+    if (!allowed) {
+      const response = createApiError(
+        `Permission denied: insufficient permissions for ${entitySlug}.${action}`,
+        403,
+        undefined,
+        'PERMISSION_DENIED'
+      )
+      return addCorsHeaders(response, request)
+    }
+  } catch {
+    // If permission check fails (e.g., permission not registered), allow
+    // This maintains backward compatibility for entities without permissions
+  }
+  return null
+}
+
 async function validateTeamMembership(userId: string, teamId: string): Promise<boolean> {
   try {
     console.log('[GenericHandler] Validating team membership:', { userId, teamId, teamIdLength: teamId?.length })
@@ -976,6 +1012,10 @@ export async function handleGenericCreate(request: NextRequest): Promise<NextRes
       return addCorsHeaders(response, request)
     }
 
+    // Check entity-level permissions for session auth
+    const permDenied = await checkSessionPermission(authResult, entityConfig.slug, 'create', teamId, request)
+    if (permDenied) return permDenied
+
     if (idStrategy === 'serial') {
       // SERIAL: Let database generate ID via DEFAULT/SERIAL
       // Always include userId to track who created the record (even for shared entities)
@@ -1467,6 +1507,10 @@ export async function handleGenericUpdate(request: NextRequest, { params }: { pa
       return addCorsHeaders(response, request)
     }
 
+    // Check entity-level permissions for session auth
+    const permDenied = await checkSessionPermission(authResult, resolution.entityConfig.slug, 'update', teamId, request)
+    if (permDenied) return permDenied
+
     // Parse request body
     let body
     try {
@@ -1782,6 +1826,10 @@ export async function handleGenericDelete(request: NextRequest, { params }: { pa
       const response = createApiError('Team context required for delete operations. Include x-team-id header.', 400, undefined, 'TEAM_CONTEXT_REQUIRED')
       return addCorsHeaders(response, request)
     }
+
+    // Check entity-level permissions for session auth
+    const permDenied = await checkSessionPermission(authResult, resolution.entityConfig.slug, 'delete', teamId, request)
+    if (permDenied) return permDenied
 
     // Delete the item
     const entityConfig = resolution.entityConfig
