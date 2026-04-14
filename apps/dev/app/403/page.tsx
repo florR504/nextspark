@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@next
 import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
 function ForbiddenContent() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams()!
   const reason = searchParams.get('reason') || 'No tienes permisos para acceder a este recurso'
   const upgrade = searchParams.get('upgrade') === 'true'
 

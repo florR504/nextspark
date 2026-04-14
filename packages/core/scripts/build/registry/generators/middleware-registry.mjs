@@ -55,7 +55,7 @@ ${imports}
 
 export interface MiddlewareRegistryEntry {
   themeName: string
-  middleware: (request: NextRequest, coreSession?: SessionUser | null) => Promise<NextResponse> | NextResponse
+  middleware: (request: NextRequest, coreSession?: SessionUser | null) => Promise<NextResponse | null> | NextResponse | null
   middlewarePath: string
   middlewareExportName: string
   exists: boolean

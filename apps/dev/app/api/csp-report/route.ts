@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import type { RateLimitTier } from '@nextsparkjs/core/lib/api/rate-limit';
 
 // Dynamic import for rate limiting - graceful fallback if not available
-let checkDistributedRateLimit: ((id: string, tier: string) => Promise<{ allowed: boolean; limit: number; remaining: number; resetTime: number; retryAfter?: number }>) | null = null;
+let checkDistributedRateLimit: ((id: string, tier: RateLimitTier) => Promise<{ allowed: boolean; limit: number; remaining: number; resetTime: number; retryAfter?: number }>) | null = null;
 let createRateLimitErrorResponse: ((result: { allowed: boolean; limit: number; remaining: number; resetTime: number; retryAfter?: number }) => NextResponse) | null = null;
 
 // Lazy-load rate limiting functions on first request

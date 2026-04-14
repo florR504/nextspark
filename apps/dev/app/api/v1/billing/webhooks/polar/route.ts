@@ -15,7 +15,7 @@
  * 3. Webhook signature verification provides security at the API level
  */
 
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { query, queryOne } from '@nextsparkjs/core/lib/db'
 
 // Polar webhook verification - import from gateway
@@ -32,7 +32,7 @@ async function loadExtensions(): Promise<PolarWebhookExtensions> {
   }
 }
 
-async function handlePolarWebhook(request: NextRequest) {
+async function handlePolarWebhook(request: NextRequest): Promise<NextResponse> {
   // 1. Get raw body and ALL headers (Polar needs full headers for verification)
   const payload = await request.text()
   const headers: Record<string, string> = {}
@@ -43,7 +43,7 @@ async function handlePolarWebhook(request: NextRequest) {
 
   // Verify required Polar webhook headers
   if (!headers['webhook-id'] || !headers['webhook-signature'] || !headers['webhook-timestamp']) {
-    return Response.json(
+    return NextResponse.json(
       { error: 'Missing required webhook headers (webhook-id, webhook-signature, webhook-timestamp)' },
       { status: 400 }
     )
@@ -56,7 +56,7 @@ async function handlePolarWebhook(request: NextRequest) {
     event = gateway.verifyWebhookSignature(payload, headers)
   } catch (error) {
     console.error('[polar-webhook] Signature verification failed:', error)
-    return Response.json({ error: 'Invalid signature' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
   // 3. Check for duplicate events (idempotency)
@@ -69,7 +69,7 @@ async function handlePolarWebhook(request: NextRequest) {
 
   if (existing) {
     console.log(`[polar-webhook] Event ${eventId} already processed, skipping`)
-    return Response.json({ received: true, status: 'duplicate' })
+    return NextResponse.json({ received: true, status: 'duplicate' })
   }
 
   // 4. Handle events
@@ -101,10 +101,10 @@ async function handlePolarWebhook(request: NextRequest) {
         console.log(`[polar-webhook] Unhandled event type: ${event.type}`)
     }
 
-    return Response.json({ received: true })
+    return NextResponse.json({ received: true })
   } catch (error) {
     console.error('[polar-webhook] Handler error:', error)
-    return Response.json({ error: 'Handler failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Handler failed' }, { status: 500 })
   }
 }
 

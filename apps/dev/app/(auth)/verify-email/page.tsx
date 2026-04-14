@@ -9,7 +9,7 @@ import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-reg
 import { sel } from '@nextsparkjs/core/selectors'
 
 function VerifyEmailContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const token = searchParams.get("token") || "";
   

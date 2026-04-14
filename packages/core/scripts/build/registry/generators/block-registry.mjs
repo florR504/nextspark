@@ -38,7 +38,22 @@ type BlockConfig = {
   description?: string
   category: string
   icon?: string
-  fields?: unknown[]
+  componentPath?: string
+  schemaPath?: string
+  fieldsPath?: string
+  thumbnail?: string
+  fieldDefinitions: unknown[]
+  examples: unknown[]
+  scope?: string[]
+  allowInPatterns?: boolean
+  schemaType?: string
+  tags?: string[]
+  isCore?: boolean
+  source?: string
+  sourceId?: string
+  version?: string
+  deprecated?: boolean
+  replacedBy?: string
 }
 
 export const BLOCK_REGISTRY: Record<string, BlockConfig> = {}

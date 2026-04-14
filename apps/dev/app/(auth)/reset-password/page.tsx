@@ -22,7 +22,7 @@ import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-reg
 import { sel } from '@nextsparkjs/core/selectors'
 
 function ResetPasswordContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const token = searchParams.get("token") || "";
   const { updatePassword } = useAuth();
 

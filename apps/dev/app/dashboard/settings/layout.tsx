@@ -35,7 +35,7 @@ function SettingsLayout({
   children: React.ReactNode
 }) {
   const [statusMessage, setStatusMessage] = useState('')
-  const pathname = usePathname()
+  const pathname = usePathname() ?? ''
   const t = useTranslations('settings')
 
   // Validate if the current settings page is enabled

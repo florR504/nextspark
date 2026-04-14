@@ -26,7 +26,7 @@ interface PatternData {
 }
 
 function PatternReportsPage() {
-  const params = useParams()
+  const params = useParams()!
   const router = useRouter()
   const patternId = params.id as string
 

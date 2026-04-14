@@ -12,7 +12,7 @@
  * so Stripe's rawBody requirement is preserved.
  */
 
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { handleStripeWebhook } from '@nextsparkjs/core/lib/billing/stripe-webhook'
 import { withRateLimitTier } from '@nextsparkjs/core/lib/api/rate-limit'
 
@@ -26,9 +26,9 @@ async function loadExtensions() {
 }
 
 export const POST = withRateLimitTier(
-  async (request: NextRequest) => {
+  async (request: NextRequest): Promise<NextResponse> => {
     const extensions = await loadExtensions()
-    return handleStripeWebhook(request, extensions)
+    return handleStripeWebhook(request, extensions) as unknown as NextResponse
   },
   'webhook'
 )

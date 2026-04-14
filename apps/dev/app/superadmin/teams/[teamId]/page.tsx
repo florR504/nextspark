@@ -146,7 +146,7 @@ const roleColors = {
  * Displays detailed information about a specific team for superadmins (read-only).
  */
 function TeamDetailPage() {
-  const params = useParams();
+  const params = useParams()!;
   const teamId = params.teamId as string;
 
   // Fetch team data from API

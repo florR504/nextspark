@@ -9,7 +9,7 @@ import { BuilderEditorView } from '@nextsparkjs/core/components/dashboard/block-
 import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-registry.client'
 
 function EntityCreatePage() {
-  const params = useParams()
+  const params = useParams()!
   const router = useRouter()
   const [entityConfig, setEntityConfig] = useState<ClientEntityConfig | null>(null)
   const [loading, setLoading] = useState(true)

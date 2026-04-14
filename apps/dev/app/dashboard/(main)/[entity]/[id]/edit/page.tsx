@@ -10,7 +10,7 @@ import { getTemplateOrDefaultClient } from '@nextsparkjs/registries/template-reg
 import { getEntityData } from '@nextsparkjs/core/lib/api/entities'
 
 function EntityEditPage() {
-  const params = useParams()
+  const params = useParams()!
   const router = useRouter()
   const [entityConfig, setEntityConfig] = useState<ClientEntityConfig | null>(null)
   const [initialData, setInitialData] = useState<Record<string, unknown> | null>(null)

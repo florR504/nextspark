@@ -21,7 +21,7 @@ interface InvitationInfo {
 }
 
 function AcceptInvitePage() {
-  const params = useParams()
+  const params = useParams()!
   const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
   const token = params.token as string

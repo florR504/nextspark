@@ -107,7 +107,7 @@ const roleColors = {
  * Displays detailed information about a specific user for superadmins.
  */
 function UserDetailPage() {
-  const params = useParams();
+  const params = useParams()!;
   const userId = params.userId as string;
 
   // Fetch user data from API
