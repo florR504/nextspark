@@ -218,11 +218,22 @@ export async function buildRegistries(projectRoot = null) {
     })
 
     // Merge all entities with priority: plugins < core < themes
-    const allEntities = [
+    // Theme entities override core entities with the same slug (e.g., patterns)
+    const mergedEntities = [
       ...pluginEntities,      // Lowest priority
       ...coreEntities,        // Core framework entities
       ...themeEntities        // Highest priority (can override core)
     ]
+
+    // Deduplicate: later entries (theme) win over earlier (core/plugin) with same name
+    const entityMap = new Map()
+    for (const entity of mergedEntities) {
+      if (entityMap.has(entity.name)) {
+        log(`  ↳ Theme override: "${entity.name}" (${entity.source || 'theme'} replaces ${entityMap.get(entity.name).source || 'core'})`, 'info')
+      }
+      entityMap.set(entity.name, entity)
+    }
+    const allEntities = Array.from(entityMap.values())
 
     // PHASE 3 VALIDATION: Ensure all entities have access.shared defined
     await validateEntityConfigurations(allEntities)
