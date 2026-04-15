@@ -1,3 +1,4 @@
+import { connection } from 'next/server'
 import { notFound } from 'next/navigation'
 import { DOCS_REGISTRY } from '@nextsparkjs/registries/docs-registry'
 import { parseMarkdownFile } from '@nextsparkjs/core/lib/docs/parser'
@@ -12,21 +13,6 @@ interface SuperadminDocsPageProps {
     section: string
     page: string
   }>
-}
-
-export async function generateStaticParams() {
-  const params = []
-
-  for (const section of DOCS_REGISTRY.superadmin) {
-    for (const page of section.pages) {
-      params.push({
-        section: section.slug,
-        page: page.slug
-      })
-    }
-  }
-
-  return params
 }
 
 export async function generateMetadata({ params }: SuperadminDocsPageProps): Promise<Metadata> {
@@ -48,6 +34,7 @@ export async function generateMetadata({ params }: SuperadminDocsPageProps): Pro
 }
 
 export default async function SuperadminDocsDetailPage({ params }: SuperadminDocsPageProps) {
+  await connection()
   const resolvedParams = await params
   const { section: sectionSlug, page: pageSlug } = resolvedParams
 
