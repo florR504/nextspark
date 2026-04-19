@@ -5,6 +5,30 @@ All notable changes to `@nextsparkjs/core` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0-beta.147] - 2026-04-19
+
+### Fixed
+- **Root layout `NextIntlClientProvider` missing `locale` prop**: Dashboard pages crashed with
+  `No intl context found. Have you configured the provider?` when the project had a different
+  `next-intl` version (e.g. 4.8.x) than the one bundled with core (4.9.x). Each package version
+  creates its own `IntlContext`, so the provider from one copy never matched consumers from the other.
+  Fixed in `templates/app/layout.tsx` by explicitly passing `locale={locale}` and bumped core's
+  `next-intl` dependency to `^4.9.1` to encourage deduplication.
+
+### Migration notes (from <= 0.146)
+Projects upgrading may need to deduplicate `next-intl`/`use-intl` in their monorepo. Add to the
+root `package.json`:
+```json
+"pnpm": {
+  "overrides": {
+    "next-intl": "^4.9.1",
+    "use-intl": "^4.9.1"
+  }
+}
+```
+Then `pnpm install` + restart dev. Run `pnpm nextspark sync:app --force` to refresh the
+auto-generated `app/layout.tsx` with the `locale` prop fix.
+
 ## [0.1.0-beta.3] - 2025-01-04
 
 ### Added
