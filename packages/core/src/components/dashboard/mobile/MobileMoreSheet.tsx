@@ -21,6 +21,8 @@ import { MOBILE_NAV_CONFIG } from '../../../lib/config/config-sync'
 import { getIcon } from '../../../lib/config/icon-map'
 import type { MobileNavMoreItem } from '../../../lib/config/types'
 import type { LucideIcon } from 'lucide-react'
+import { usePermission } from '../../../lib/permissions/hooks'
+import type { Permission } from '../../../lib/permissions/types'
 
 interface MobileMoreSheetProps {
   isOpen: boolean
@@ -34,6 +36,41 @@ interface ProcessedMenuItem {
   href: string
   icon: LucideIcon
   external: boolean
+  requiresPermission?: string
+}
+
+// Component to render a single more-sheet item with permission check.
+// Extracted into its own component so usePermission hook is called once per item (React rules).
+function MoreSheetItemWithPermission({
+  item,
+  onLinkClick,
+}: {
+  item: ProcessedMenuItem
+  onLinkClick: () => void
+}) {
+  // Always call the hook (React rules) - use the permission if defined, otherwise a dummy permission
+  const permissionToCheck = item.requiresPermission as Permission || 'teams.read' as Permission
+  const hasPermission = usePermission(permissionToCheck)
+
+  // If permission is required and user doesn't have it, don't render this item
+  if (item.requiresPermission && !hasPermission) {
+    return null
+  }
+
+  const Icon = item.icon
+  return (
+    <Link
+      href={item.href}
+      onClick={onLinkClick}
+      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors"
+      target={item.external ? '_blank' : undefined}
+      rel={item.external ? 'noopener noreferrer' : undefined}
+      data-cy={sel('dashboard.mobile.moreSheet.item', { id: item.id })}
+    >
+      <Icon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+      <span className="text-sm font-medium">{item.label}</span>
+    </Link>
+  )
 }
 
 export function MobileMoreSheet({ isOpen, onOpenChange }: MobileMoreSheetProps) {
@@ -74,7 +111,8 @@ export function MobileMoreSheet({ isOpen, onOpenChange }: MobileMoreSheetProps) 
         label: t(configItem.labelKey),
         href: configItem.href,
         icon: IconComponent,
-        external: configItem.external || false
+        external: configItem.external || false,
+        requiresPermission: configItem.requiresPermission,
       }
     })
 
@@ -95,24 +133,14 @@ export function MobileMoreSheet({ isOpen, onOpenChange }: MobileMoreSheetProps) 
         </SheetHeader>
 
         <div className="mt-6 space-y-2">
-          {/* Menu Items */}
-          {menuItems.map((item) => {
-            const Icon = item.icon
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                onClick={handleLinkClick}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors"
-                target={item.external ? '_blank' : undefined}
-                rel={item.external ? 'noopener noreferrer' : undefined}
-                data-cy={sel('dashboard.mobile.moreSheet.item', { id: item.id })}
-              >
-                <Icon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                <span className="text-sm font-medium">{item.label}</span>
-              </Link>
-            )
-          })}
+          {/* Menu Items — each rendered through a permission-aware component */}
+          {menuItems.map((item) => (
+            <MoreSheetItemWithPermission
+              key={item.id}
+              item={item}
+              onLinkClick={handleLinkClick}
+            />
+          ))}
 
           {/* Admin Panel - Solo para superadmin */}
           {isSuperAdmin && (

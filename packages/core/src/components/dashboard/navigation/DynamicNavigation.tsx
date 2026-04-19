@@ -20,18 +20,21 @@ interface NavigationItem {
   descriptionKey?: string
 }
 
+interface CustomSidebarSectionItem {
+  id: string
+  labelKey: string
+  href: string
+  icon: string
+  requiresPermission?: string
+}
+
 interface CustomSidebarSection {
   id: string
   labelKey: string
   icon: string
   order: number
   requiresPermission?: string
-  items: {
-    id: string
-    labelKey: string
-    href: string
-    icon: string
-  }[]
+  items: CustomSidebarSectionItem[]
 }
 
 interface DynamicNavigationProps {
@@ -73,6 +76,65 @@ const labelMappings: Record<string, string> = {
   'navigation.courses': 'Courses',
   'navigation.lessons': 'Lessons',
   'navigation.analytics': 'Analytics',
+}
+
+// Component to render a single section item with permission check.
+// Extracted into its own component so usePermission hook is called once per item (React rules).
+function NavItemWithPermission({
+  item,
+  sectionId,
+  pathname,
+  isMobile,
+  isCollapsed,
+  onItemClick,
+  normalizeKey,
+  t,
+}: {
+  item: CustomSidebarSectionItem
+  sectionId: string
+  pathname: string
+  isMobile: boolean
+  isCollapsed: boolean
+  onItemClick?: () => void
+  normalizeKey: (key: string) => string
+  t: (key: string) => string
+}) {
+  // Always call the hook (React rules) - use the permission if defined, otherwise a dummy permission
+  const permissionToCheck = item.requiresPermission as Permission || 'teams.read' as Permission
+  const hasPermission = usePermission(permissionToCheck)
+
+  // If permission is required and user doesn't have it, don't render this item
+  if (item.requiresPermission && !hasPermission) {
+    return null
+  }
+
+  const ItemIcon = (Icons[item.icon as keyof typeof Icons] || Icons.Circle) as LucideIcon
+  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+
+  // Get item label using translation with fallback to static mapping
+  const normalizedItemKey = normalizeKey(item.labelKey)
+  const itemLabel = t(normalizedItemKey) || labelMappings[item.labelKey] || item.id
+
+  return (
+    <Link
+      href={item.href}
+      onClick={onItemClick}
+      className={cn(
+        "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        isCollapsed ? "justify-center" : "gap-3",
+        isActive
+          ? "bg-secondary text-foreground"
+          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+        isMobile && "w-full"
+      )}
+      aria-current={isActive ? 'page' : undefined}
+      title={isCollapsed ? itemLabel : undefined}
+      data-cy={sel('dashboard.navigation.sectionItem', { sectionId, itemId: item.id })}
+    >
+      <ItemIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+      {!isCollapsed && <span className="truncate">{itemLabel}</span>}
+    </Link>
+  )
 }
 
 // Component to render section with permission check
@@ -125,36 +187,19 @@ function SectionWithPermission({
         <div className="my-2 mx-3 border-t border-border" aria-hidden="true" />
       )}
       <div className="space-y-1">
-        {section.items.map((item) => {
-          const ItemIcon = (Icons[item.icon as keyof typeof Icons] || Icons.Circle) as LucideIcon
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-
-          // Get item label using translation with fallback to static mapping
-          const normalizedItemKey = normalizeKey(item.labelKey)
-          const itemLabel = t(normalizedItemKey) || labelMappings[item.labelKey] || item.id
-
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              onClick={onItemClick}
-              className={cn(
-                "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isCollapsed ? "justify-center" : "gap-3",
-                isActive
-                  ? "bg-secondary text-foreground"
-                  : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
-                isMobile && "w-full"
-              )}
-              aria-current={isActive ? 'page' : undefined}
-              title={isCollapsed ? itemLabel : undefined}
-              data-cy={sel('dashboard.navigation.sectionItem', { sectionId: section.id, itemId: item.id })}
-            >
-              <ItemIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-              {!isCollapsed && <span className="truncate">{itemLabel}</span>}
-            </Link>
-          )
-        })}
+        {section.items.map((item) => (
+          <NavItemWithPermission
+            key={item.id}
+            item={item}
+            sectionId={section.id}
+            pathname={pathname}
+            isMobile={isMobile}
+            isCollapsed={isCollapsed}
+            onItemClick={onItemClick}
+            normalizeKey={normalizeKey}
+            t={t}
+          />
+        ))}
       </div>
     </div>
   )

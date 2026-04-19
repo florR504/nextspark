@@ -98,6 +98,14 @@ export interface MobileNavMoreItem {
 
   /** Whether this link opens in a new tab */
   external?: boolean
+
+  /**
+   * Permission required to display this item.
+   * If set, the item is only shown to users who have this permission in the current team.
+   * If not set, the item is shown to all users (backward compatible).
+   * Example: 'schedules.list', 'analytics.list'
+   */
+  requiresPermission?: string
 }
 
 /**
